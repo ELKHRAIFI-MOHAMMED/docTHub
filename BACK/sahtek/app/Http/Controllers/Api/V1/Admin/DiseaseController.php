@@ -25,7 +25,7 @@ class DiseaseController extends AdminCrudController
             'name' => [$this->req($model), 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:10000'],
             'specialty_id' => ['nullable', 'integer', 'exists:specialties,id'],
-            'severity' => ['sometimes', Rule::in(['low', 'moderate', 'high'])],
+            'severity' => ['sometimes', 'nullable', Rule::in(['low', 'moderate', 'high'])],
             'status' => ['sometimes', Rule::in(Disease::STATUSES)],
             'review_status' => ['sometimes', Rule::in(Disease::REVIEW_STATUSES)],
             'source_name' => ['nullable', 'string', 'max:255', 'required_if:review_status,approved'],

@@ -46,7 +46,7 @@ Ce fichier recense chaque source externe utilisée par le pipeline (`knowledge:f
 ### À confirmer avant de passer à `confirmed`
 1. **La section 4 du PDF de licence** (« autres conditions ») et **les clauses d'usage commercial** n'ont pas pu être lues : l'outil de lecture PDF n'est pas disponible ici.
 2. **Les conditions acceptées à la création des identifiants de l'API** sur https://icd.who.int/icdapi.
-3. Le futur rapprochement CIM-11 ↔ symptômes / spécialités de l'application (phase 2) n'est-il pas une « correspondance » au sens du § 1.2.4 ? À faire trancher. **En attendant, la phase 2 n'importera que le code, le titre et l'URI, sans lien créé automatiquement.**
+3. Le rapprochement CIM-11 ↔ symptômes / spécialités de l'application est-il une « correspondance » au sens du § 1.2.4 ? **Décision du 2026-11-21 : l'import ne reprend que le code, le titre et l'URI, sans aucun lien créé automatiquement.**
 
 ---
 
@@ -106,3 +106,30 @@ Résultat pour chaque couple (cible, langue) :
 | `FAILED` | échec après les réessais ; code de sortie 1 |
 
 Les fichiers bruts sont écrits dans `storage/app/raw/{source}/{sha256}.{json|xml}`. Ils sont exclus de git et ne sont jamais modifiés.
+
+## 4. Importer dans le catalogue (`knowledge:import`)
+
+```bash
+# Aperçu sans rien écrire
+php artisan knowledge:import icd11 --as=disease --dry-run
+# CIM-11 : code, titre et URI seulement ; vous choisissez le type (disease = affection, symptom = symptôme)
+php artisan knowledge:import icd11 --as=disease --only=<code>
+# MedlinePlus : lister les fiches trouvées, puis importer celles que vous choisissez
+php artisan knowledge:import medlineplus
+php artisan knowledge:import medlineplus --as=symptom --only=<topic id>
+```
+
+| Règle | Effet |
+|---|---|
+| Type | **Jamais déduit** : `--as` est obligatoire. La plage de codes du chapitre 21 de la CIM-11 (symptômes) n'a pas pu être vérifiée sur une page officielle ; une recherche MedlinePlus mélange des fiches de plusieurs types. |
+| Statut | `draft`, relecture `draft`, `version = 1`, `is_sample = false`, `source_document_id` = la version brute utilisée |
+| Contenu | CIM-11 : code, titre, URI (`external_uri`), sans définition. MedlinePlus : titre, synonymes *also called*, résumé sans HTML. Les pages liées (A.D.A.M., sites externes) ne sont jamais lues |
+| Rien d'inventé | aucune gravité (`severity` NULL), aucune spécialité, aucune zone du corps, aucun lien symptôme ↔ affection, aucune règle |
+| Langues | seules les langues fournies par la source sont enregistrées ; les autres sont listées dans `needs_translation`, sans traduction automatique |
+| Code interne | `icd11_<code>` ou `mplus_<id>`, en snake_case minuscule ; le libellé n'est qu'une traduction |
+| Idempotence | relancer l'import ne crée aucun doublon (`unchanged`) |
+| Élément déjà relu | un élément qui n'est plus brouillon n'est **jamais écrasé** : l'écart est signalé (`conflict`) |
+| Synonymes | table `knowledge_aliases`, dédoublonnés par langue ; un synonyme déjà rattaché à un autre élément est signalé et non ajouté |
+| Doublons entre sources | même nom sous deux codes (CIM-11 et MedlinePlus) : signalé, **jamais fusionné** (fusionner serait une correspondance) |
+
+Spécialités et recommandations : aucune des deux sources n'en fournit sous une forme réutilisable telle quelle ; elles restent saisies et relues dans l'admin.

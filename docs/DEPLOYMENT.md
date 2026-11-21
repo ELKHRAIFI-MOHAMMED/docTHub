@@ -64,6 +64,7 @@ cd frontend && npm test && npm run typecheck && npm run build
 1. `php artisan db:seed --class=KnowledgeSourceSeeder` (also run by `db:seed`; never overwrites an existing source).
 2. Read [sources.md](sources.md), then set each licence to *confirmed* in Admin → Knowledge sources (or leave it blocked).
 3. `php artisan knowledge:fetch icd11|medlineplus --target=… [--lang=…]`. Exit code 1 if any document failed; raw files in `storage/app/raw/`. Keep that directory on persistent storage and in backups.
+4. `php artisan knowledge:import icd11|medlineplus --as=disease|symptom [--only=…] [--dry-run]` creates draft catalog items; reviewers then link and approve them in the admin.
 
 ## Migrating V1 data
 See `MIGRATION_FROM_V1.md` — `php artisan docthub:import-v1 --country=MA [--dry-run]`.

@@ -95,6 +95,11 @@ Knowledge pipeline (phase 1 of the data pipeline, migration `2025_03_01_000001`)
 - `source_documents`: **one row per fingerprint**. Identity = (`knowledge_source_id`, `url`, `language`), `unique(url, language, content_hash)`. New: `previous_document_id`, `raw_path` (`raw/{source}/{sha256}.{ext}` on the raw disk; raw bytes untouched), `raw_format`, `raw_bytes`, `http_status`, `metadata` (json: release, code, URI…), status `superseded` for older versions. Mapping with the requested fields: `source_name`/`licence` → `knowledge_sources.name`/`license`, `fetched_at` → `retrieved_at`, `content_sha256` → `content_hash`.
 - For API documents (`raw_path` set) `content_hash` is the SHA-256 of the raw bytes; for pages of the page monitor it is the SHA-256 of the normalised text kept in `raw_content`.
 
+Knowledge import (migration `2025_03_02_000001`):
+- `symptoms` and `diseases`: `external_system` (`icd11`, `medlineplus`), `external_code`, `external_uri` — unique(external_system, external_code); `needs_translation` (json list of locales with no text); `version`; `symptoms.source_document_id`.
+- `diseases.severity` is now **nullable, no default** (imported conditions get no severity).
+- `knowledge_aliases`: aliasable_type, aliasable_id, locale, alias, normalized — unique(aliasable_type, locale, normalized); source_document_id.
+
 New columns: `source_document_id` on `medical_guidelines`, `orientation_rules`, `diseases`; `summary_template`\* on `symptom_questions`; `questionnaire_version`, `ruleset_version` on `symptom_assessments`.
 
 ## Deferred tables

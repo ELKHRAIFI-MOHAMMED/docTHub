@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Disease extends Model
@@ -20,9 +21,15 @@ class Disease extends Model
     protected $fillable = [
         'code', 'name', 'description', 'specialty_id', 'severity', 'status', 'review_status',
         'source_name', 'source_url', 'source_document_id', 'is_sample',
+        'external_system', 'external_code', 'external_uri', 'needs_translation', 'version',
     ];
 
-    protected $casts = ['is_sample' => 'boolean'];
+    protected $casts = ['is_sample' => 'boolean', 'needs_translation' => 'array'];
+
+    public function aliases(): MorphMany
+    {
+        return $this->morphMany(KnowledgeAlias::class, 'aliasable');
+    }
 
     public function specialty(): BelongsTo
     {

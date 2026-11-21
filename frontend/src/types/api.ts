@@ -18,7 +18,7 @@ export interface BodyPart { id: number; code: string; name: string; description:
 export interface Symptom { id: number; code: string; name: string }
 
 export interface Disease {
-  id: number; code: string; name: string; description: string | null; severity: 'low' | 'moderate' | 'high';
+  id: number; code: string; name: string; description: string | null; severity: 'low' | 'moderate' | 'high' | null;
   specialty?: Specialty; symptoms?: Symptom[]; review_status: string; is_sample: boolean; source_name: string | null;
 }
 

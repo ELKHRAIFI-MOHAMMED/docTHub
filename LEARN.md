@@ -77,6 +77,15 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 - ⬜ Licences to be confirmed by the project owner (see `docs/sources.md`) — nothing has been downloaded for real
 - ⬜ DNS-rebinding hardening still open (fixed hosts in config for API sources)
 
+### Data pipeline V2 — phase 2: staging and structuring
+- ✅ `knowledge:import {source} --as=disease|symptom [--only=…] [--dry-run]` into the existing `diseases` / `symptoms` tables
+- ✅ ICD-11: code, title, URI only (decision 2026-11-21); MedlinePlus: title, “also called” synonyms, summary without HTML; linked pages never read
+- ✅ Normalisation (UTF-8 check, HTML removed, trim), stable codes `icd11_<code>` / `mplus_<id>`; translations only for languages provided, others in `needs_translation`
+- ✅ `knowledge_aliases` (deduplicated per locale, conflicts reported); cross-source duplicates reported, never merged
+- ✅ Idempotent; reviewed / published items never overwritten (`conflict`); all rows draft, version 1, `source_document_id`; no severity, specialty, body part, link or rule
+- ✅ Tests: +9 backend (88 total)
+- ⬜ Type (symptom vs condition) chosen by the operator: ICD-11 chapter ranges not verified on an official page
+
 ### Phase 6 — Quality & deployment
 - ✅ Backend: 50 tests / 276 assertions (feature + unit) — auth, authorisation, validation, rules, emergency rules, discovery, admin, privacy
 - ✅ Frontend: 23 tests (components, forms, API integration with mocked fetch, RTL, i18n key parity, auth guards)
@@ -111,6 +120,8 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 | 18 | Raw layer = one row per fingerprint, raw bytes on disk, licence gate in the database | Full history (what exactly was read, when), reproducible imports; a human confirms each licence | Disk grows with each version (content-addressed, so identical content is stored once) |
 | 19 | API sources hash the **raw bytes**; the page monitor keeps hashing **normalised text** | API JSON/XML is stable; HTML pages change cosmetically | Two fingerprint meanings in one table, distinguished by `raw_path` (set = raw bytes) |
 | 20 | MedlinePlus French/Arabic are "skipped", never translated; ICD-11 only uses WHO's own languages | ICD-11 terms exclude translations without WHO agreement; no silent machine translation | FR/AR coverage depends on publishers |
+| 21 | The operator chooses the target type (`--as`), the importer never infers it | Neither source gives a verified symptom/condition flag | One command per type |
+| 22 | Imports never overwrite non-draft items and never merge sources | Review must stay meaningful; merging ICD-11 with another source is a mapping | Reviewers resolve `conflict` and duplicate notes by hand |
 | 14 | Pinned latest *known* majors (Vite 7, TS 5.9, Vitest 3, i18next 25) instead of the newest (Vite 8, TS 7, Vitest 5) | Avoid unverified breaking changes during the build | Upgrade later in a dedicated step |
 
 ---

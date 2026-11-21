@@ -46,4 +46,11 @@ php artisan knowledge:fetch icd11 --target=<ICD-11 code> --lang=en --lang=fr --l
 php artisan knowledge:fetch medlineplus --target="<search term>"
 ```
 
+Then structure them into the catalog as **draft** items (type chosen by you, no links, no severity):
+
+```bash
+php artisan knowledge:import icd11 --as=disease --dry-run
+php artisan knowledge:import medlineplus                    # lists topics; then --only=<id> --as=symptom|disease
+```
+
 Raw files: `storage/app/raw/{source}/{sha256}.{json|xml}`. Imported content is never published or approved automatically.
