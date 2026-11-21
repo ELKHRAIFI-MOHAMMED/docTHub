@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../app/api';
 import { useAppSelector } from '../../app/store';
-import { Alert, Button, Card, PageLoader, Select } from '../../components/common/ui';
-import { errorMessage } from '../../utils/errors';
+import { Alert, Button, Card, PageLoader, Select, ErrorState } from '../../components/common/ui';
 import { useAnalyticsQuery } from './adminApi';
 
 interface Indicators {
@@ -38,7 +37,7 @@ export default function AnalyticsPage() {
   const { t } = useTranslation();
   const [days, setDays] = useState(90);
   const token = useAppSelector((s) => s.auth.token);
-  const { data, isLoading, error } = useAnalyticsQuery(days);
+  const { data, isLoading, error, refetch } = useAnalyticsQuery(days);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -62,7 +61,7 @@ export default function AnalyticsPage() {
   }
 
   if (isLoading) return <PageLoader />;
-  if (error || !data) return <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert>;
+  if (error || !data) return <ErrorState error={error} onRetry={refetch} />;
   const s = data as unknown as Indicators;
   const small = (n: number) => (n < MIN_SAMPLE ? t('analytics.smallSample', { n, min: MIN_SAMPLE }) : undefined);
 

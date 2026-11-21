@@ -65,7 +65,7 @@ export function BodyMap({ bodyParts, selected, onToggle }: BodyMapProps) {
               type="button"
               aria-pressed={view === v}
               onClick={() => setView(v)}
-              className={cx('flex-1 rounded-lg py-1.5 text-sm font-medium', view === v ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-600')}
+              className={cx('min-h-11 flex-1 rounded-lg py-1.5 text-sm font-medium', view === v ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-600')}
             >
               {t(`checker.${v}`)}
             </button>
@@ -104,7 +104,7 @@ export function BodyMap({ bodyParts, selected, onToggle }: BodyMapProps) {
         <legend className="mb-2 text-sm font-semibold text-slate-700">{t('checker.orChooseFromList')}</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {bodyParts.map((p) => (
-            <label key={p.id} className={cx('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm ring-1', selected.includes(p.id) ? 'bg-brand-50 ring-brand-300 text-brand-900' : 'bg-white ring-slate-200')}>
+            <label key={p.id} className={cx('flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm ring-1', selected.includes(p.id) ? 'bg-brand-50 ring-brand-300 text-brand-900' : 'bg-white ring-slate-200')}>
               <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={selected.includes(p.id)} onChange={() => onToggle(p.id)} />
               {p.name}
             </label>

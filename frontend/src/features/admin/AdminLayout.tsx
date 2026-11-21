@@ -20,7 +20,7 @@ export default function AdminLayout() {
             <NavLink to="/admin/audit" className={link}>{t('audit.title')}</NavLink>
           </div>
           <div>
-            <p className="px-3 pb-1 text-xs font-semibold uppercase text-slate-400">{t('admin.catalog')}</p>
+            <p className="px-3 pb-1 text-xs font-semibold uppercase text-slate-500">{t('admin.catalog')}</p>
             {RESOURCES.map((r) => <NavLink key={r.key} to={`/admin/r/${r.key}`} className={link}>{t(r.title)}</NavLink>)}
           </div>
         </nav>

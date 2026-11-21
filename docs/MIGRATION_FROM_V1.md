@@ -4,7 +4,7 @@
 
 ### Structure
 - `BACK/sahtek` — Laravel 10, PHP ≥ 8.1, Sanctum installed but unused.
-- `front/sahtek` — Create React App (React 18), Redux + redux-thunk, React Router 6, Axios. Three screens.
+- `front/sahtek` — Create React App (React 18), Redux + redux-thunk, React Router 6, Axios. Three screens. **Removed from the code base in the data pipeline phase 5; kept in the git tag `archive/front-v1`.**
 
 ### V1 data model
 | V1 table | Meaning | V2 target |

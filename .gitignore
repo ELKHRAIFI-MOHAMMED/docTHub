@@ -1,0 +1,3 @@
+# Dependencies (any folder). Also covers the local install left by the archived V1 front-end
+# (front/sahtek was removed; its sources are in the git tag archive/front-v1).
+node_modules/

@@ -1,31 +1,77 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useAppSelector } from '../../app/store';
-import { Alert, Badge, Card, EmptyState, PageLoader } from '../../components/common/ui';
+import { Alert, Badge, Card, EmptyState, PageLoader, ErrorState } from '../../components/common/ui';
 import { Disclaimer } from '../../components/medical/Disclaimer';
 import { EmergencyAlert } from '../../components/medical/EmergencyAlert';
-import { errorMessage } from '../../utils/errors';
+import type { OrientationResult } from '../../types/api';
+import { clearInProgress } from '../symptom-checker/inProgress';
 import { useResultsQuery } from '../symptom-checker/assessmentApi';
 import { CaseSummary } from './CaseSummary';
 import { OutcomeForm } from './OutcomeForm';
 
 const severityTone = { low: 'neutral', moderate: 'warning', high: 'danger' } as const;
 
+/** Always shown at the top of the results, cannot be dismissed. */
+function NotDiagnosisBanner() {
+  const { t } = useTranslation();
+  return (
+    <div role="note" className="rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white">
+      {t('results.notDiagnosisBanner')}
+    </div>
+  );
+}
+
+/** Every source behind what is shown, in one collapsible section (open by default). */
+function Sources({ r }: { r: OrientationResult }) {
+  const { t } = useTranslation();
+  const seen = new Map<string, { name: string; url: string | null }>();
+  r.conditions.forEach(({ disease }) => disease.source_name && seen.set(disease.source_name, { name: disease.source_name, url: null }));
+  r.guidelines.forEach((g) => g.source_name && seen.set(g.source_name + (g.source_url ?? ''), { name: g.source_name, url: g.source_url }));
+  const sources = [...seen.values()];
+  return (
+    <details open className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+      <summary className="min-h-11 cursor-pointer content-center text-lg font-semibold">{t('results.sources', { count: sources.length })}</summary>
+      {sources.length === 0 ? (
+        <p className="mt-2 text-sm text-slate-600">{t('results.noSources')}</p>
+      ) : (
+        <ul className="mt-2 list-disc space-y-1 ps-5 text-sm text-slate-700">
+          {sources.map((s) => (
+            <li key={s.name + (s.url ?? '')}>{s.url ? <a href={s.url} target="_blank" rel="noreferrer noopener" className="text-brand-700 underline">{s.name}</a> : s.name}</li>
+          ))}
+        </ul>
+      )}
+    </details>
+  );
+}
+
 /** Step 3: medical orientation results. Emergency instructions always come first and replace the normal flow. */
 export default function ResultsPage() {
   const { t } = useTranslation();
   const { id = '' } = useParams();
   const locale = useAppSelector((s) => s.preferences.locale);
-  const { data: r, isLoading, error } = useResultsQuery({ id, locale });
+  const { data: r, isLoading, error, refetch } = useResultsQuery({ id, locale });
+  // The assessment is finished: nothing left to resume.
+  useEffect(() => { if (r) clearInProgress(r.id); }, [r]);
 
   if (isLoading) return <PageLoader />;
-  if (error || !r) return <Alert tone="danger">{errorMessage(error, t('errors.notFound'))}</Alert>;
+  if (error || !r) return <ErrorState error={error} onRetry={refetch} fallback={t('errors.notFound')} />;
+  // Any element shown that a reviewer has not approved (or unreviewed content allowed) → warning banner.
+  const unreviewed = r.uses_unreviewed_content
+    || r.conditions.some(({ disease }) => disease.review_status !== 'approved')
+    || r.guidelines.some((g) => g.review_status !== 'approved');
+  const unreviewedBanner = unreviewed && (
+    <Alert tone="warning" title={t('results.sampleContent')}>{r.unreviewed_notice ?? t('results.unreviewedBanner')}</Alert>
+  );
 
   if (r.emergency) {
     return (
       <div className="mx-auto max-w-3xl space-y-6">
         <EmergencyAlert emergency={r.emergency} />
+        <NotDiagnosisBanner />
         <CaseSummary summary={r.case_summary} />
+        {unreviewedBanner}
         <Disclaimer text={r.disclaimer} />
         {r.follow_up.available && <OutcomeForm assessmentId={r.id} conditions={[]} emergency />}
       </div>
@@ -41,8 +87,9 @@ export default function ResultsPage() {
         <h1 className="text-3xl font-bold text-slate-900">{t('results.title')}</h1>
       </header>
 
+      <NotDiagnosisBanner />
+      {unreviewedBanner}
       <Disclaimer text={r.disclaimer} />
-      {r.unreviewed_notice && <Alert tone="warning" title={t('results.sampleContent')}>{r.unreviewed_notice}</Alert>}
       <CaseSummary summary={r.case_summary} />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -106,6 +153,7 @@ export default function ResultsPage() {
               ))}
             </dl>
           </Card>
+          <Sources r={r} />
           {r.follow_up.available && <OutcomeForm assessmentId={r.id} conditions={r.conditions.map((c) => c.disease)} emergency={false} />}
         </div>
 

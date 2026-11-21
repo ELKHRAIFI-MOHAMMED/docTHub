@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { api } from '../../app/api';
-import { Alert, Button, Card, Field, Input, PageLoader, Select } from '../../components/common/ui';
+import { Alert, Button, Card, Field, Input, PageLoader, Select, ErrorState } from '../../components/common/ui';
 import { errorMessage, fieldErrors } from '../../utils/errors';
 import { useCitiesQuery, useCountriesQuery, useLanguagesQuery } from '../catalog/catalogApi';
 import { loggedOut } from '../auth/authSlice';
@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const locale = useAppSelector((s) => s.preferences.locale);
-  const { data: profile, isLoading } = useProfileQuery(locale);
+  const { data: profile, isLoading, error: loadError, refetch } = useProfileQuery(locale);
   const [update, { isLoading: saving, error, isSuccess }] = useUpdateProfileMutation();
   const [exportData, { isLoading: exporting }] = useExportDataMutation();
   const [deleteAccount, { isLoading: deleting, error: deleteError }] = useDeleteAccountMutation();
@@ -36,6 +36,7 @@ export default function ProfilePage() {
   const errors = fieldErrors(error);
   const set = (k: string) => (e: { target: { value: string } }) => setF((p) => ({ ...p, [k]: e.target.value, ...(k === 'country_id' ? { city_id: '' } : {}) }));
 
+  if (loadError && !profile) return <ErrorState error={loadError} onRetry={refetch} />;
   if (isLoading || !profile) return <PageLoader />;
 
   async function onSubmit(e: FormEvent) {

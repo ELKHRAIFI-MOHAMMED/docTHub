@@ -57,7 +57,7 @@ export default function HomePage() {
       <section aria-labelledby="specialties">
         <div className="flex items-end justify-between">
           <h2 id="specialties" className="text-2xl font-bold text-slate-900">{t('home.specialties')}</h2>
-          <Link to="/doctors" className="text-sm font-medium text-brand-700 hover:underline">{t('home.seeAllDoctors')}</Link>
+          <Link to="/doctors" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700 hover:underline">{t('home.seeAllDoctors')}</Link>
         </div>
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {specialties.slice(0, 8).map((s) => (

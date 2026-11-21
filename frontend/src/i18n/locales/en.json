@@ -83,7 +83,12 @@
     "allAnsweredText": "We can now show your medical orientation.",
     "reviewAnswers": "Review my answers",
     "seeResults": "See my results",
-    "startAgain": "Start a new assessment"
+    "startAgain": "Start a new assessment",
+    "noBodyParts": "No body area is available yet.",
+    "resumeTitle": "You have an assessment in progress",
+    "resumeText": "Your answers were saved. Continue where you left off, or start again.",
+    "resume": "Resume",
+    "resumeDiscard": "Start a new one"
   },
   "results": {
     "title": "Your medical orientation",
@@ -110,7 +115,12 @@
     "noSpecialty": "No specialty could be recommended.",
     "sampleContent": "Development content",
     "worseTitle": "If your symptoms get worse",
-    "worseText": "Do not wait: contact a doctor or your local emergency number."
+    "worseText": "Do not wait: contact a doctor or your local emergency number.",
+    "notDiagnosisBanner": "This is an orientation, not a diagnosis.",
+    "unreviewedBanner": "Some of the information shown has not yet been reviewed by a qualified professional.",
+    "sources_one": "{{count}} source",
+    "sources_other": "{{count}} sources",
+    "noSources": "No source is attached to the information shown."
   },
   "emergency": {
     "critical": "Emergency",
@@ -119,7 +129,9 @@
     "call": "Call {{number}}",
     "noNumber": "Call your local emergency number or go to the nearest emergency department.",
     "unverifiedNumber": "Emergency number for {{country}} not yet verified by docTHub — if in doubt, use the official local number.",
-    "notDiagnosis": "This warning is based on the signs you reported. It is not a diagnosis."
+    "notDiagnosis": "This warning is based on the signs you reported. It is not a diagnosis.",
+    "acknowledge": "I understand, show the summary",
+    "showAgain": "Show the emergency instructions"
   },
   "disclaimer": {
     "title": "Orientation, not diagnosis",
@@ -240,7 +252,8 @@
   "errors": {
     "network": "Something went wrong. Check your connection and try again.",
     "notFound": "Page not found.",
-    "forbidden": "You do not have access to this page."
+    "forbidden": "You do not have access to this page.",
+    "loadFailed": "This content could not be loaded"
   },
   "footer": {
     "platform": "Platform"

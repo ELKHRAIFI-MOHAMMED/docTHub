@@ -83,7 +83,12 @@
     "allAnsweredText": "Nous pouvons maintenant afficher votre orientation médicale.",
     "reviewAnswers": "Revoir mes réponses",
     "seeResults": "Voir mes résultats",
-    "startAgain": "Commencer une nouvelle évaluation"
+    "startAgain": "Commencer une nouvelle évaluation",
+    "noBodyParts": "Aucune zone du corps n’est encore disponible.",
+    "resumeTitle": "Vous avez une évaluation en cours",
+    "resumeText": "Vos réponses ont été enregistrées. Reprenez là où vous vous êtes arrêté, ou recommencez.",
+    "resume": "Reprendre",
+    "resumeDiscard": "En commencer une nouvelle"
   },
   "results": {
     "title": "Votre orientation médicale",
@@ -110,7 +115,13 @@
     "noSpecialty": "Aucune spécialité n'a pu être recommandée.",
     "sampleContent": "Contenu de développement",
     "worseTitle": "Si vos symptômes s'aggravent",
-    "worseText": "N'attendez pas : contactez un médecin ou le numéro d'urgence local."
+    "worseText": "N'attendez pas : contactez un médecin ou le numéro d'urgence local.",
+    "notDiagnosisBanner": "Ceci est une orientation, pas un diagnostic.",
+    "unreviewedBanner": "Certaines informations affichées n’ont pas encore été relues par un professionnel qualifié.",
+    "sources_one": "{{count}} source",
+    "sources_many": "{{count}} sources",
+    "sources_other": "{{count}} sources",
+    "noSources": "Aucune source n’est associée aux informations affichées."
   },
   "emergency": {
     "critical": "Urgence",
@@ -119,7 +130,9 @@
     "call": "Appeler le {{number}}",
     "noNumber": "Appelez le numéro d'urgence local ou rendez-vous aux urgences les plus proches.",
     "unverifiedNumber": "Numéro d'urgence pour {{country}} pas encore vérifié par docTHub — en cas de doute, utilisez le numéro officiel local.",
-    "notDiagnosis": "Cet avertissement est basé sur les signes que vous avez indiqués. Ce n'est pas un diagnostic."
+    "notDiagnosis": "Cet avertissement est basé sur les signes que vous avez indiqués. Ce n'est pas un diagnostic.",
+    "acknowledge": "J’ai compris, afficher le résumé",
+    "showAgain": "Afficher les consignes d’urgence"
   },
   "disclaimer": {
     "title": "Orientation, pas diagnostic",
@@ -240,7 +253,8 @@
   "errors": {
     "network": "Une erreur est survenue. Vérifiez votre connexion et réessayez.",
     "notFound": "Page introuvable.",
-    "forbidden": "Vous n'avez pas accès à cette page."
+    "forbidden": "Vous n'avez pas accès à cette page.",
+    "loadFailed": "Ce contenu n’a pas pu être chargé"
   },
   "footer": {
     "platform": "Plateforme"

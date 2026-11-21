@@ -105,6 +105,18 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 - ⬜ Export of the current sample catalog is refused (13 validation errors) — expected until content is reviewed
 - ⬜ Changes made outside the app (SQL, tinker) bypass the audit trail and the hash cache
 
+### Data pipeline V2 — phase 5: front-end
+- ✅ Every data screen: skeleton while loading (`role=status`, `aria-busy`), clear error + **Retry** (`ErrorState`, no retry on 404), empty state
+- ✅ Emergency screen: full screen portal (`role=alertdialog`, `aria-modal`, z-index above everything, scroll locked, focus on the `tel:` button, focus trapped); after "I understand" a bar stays fixed at the bottom with the call button
+- ✅ Results: permanent "orientation, not a diagnosis" banner; "not reviewed" banner when any shown item is not approved (not only in development); all sources in one collapsible section. No sponsored doctors exist, so nothing to separate
+- ✅ Assessment in progress remembered on the device for 24 h (id only), resume / discard card, cleared on results and logout
+- ✅ Touch targets ≥ 44 px (buttons, inputs, header selects, nav, view toggle, footer links), low-contrast greys replaced (slate-400 → 500), back arrow mirrored in RTL
+- ✅ Checked in real Chrome at 360 px (EN/FR/AR): no horizontal overflow, no interactive element under 44 px except the hidden skip link
+- ✅ V1 front-end removed from the branch, kept in tag `archive/front-v1`
+- ✅ Tests: +7 frontend (35 total); backend unchanged (108)
+- ⬜ No automated contrast audit tool (axe) in the test suite; contrast checked by colour choice
+- ⬜ Main bundle 523 kB (170 kB gzip) — split vendor chunks later
+
 ### Phase 6 — Quality & deployment
 - ✅ Backend: 50 tests / 276 assertions (feature + unit) — auth, authorisation, validation, rules, emergency rules, discovery, admin, privacy
 - ✅ Frontend: 23 tests (components, forms, API integration with mocked fetch, RTL, i18n key parity, auth guards)
@@ -180,6 +192,8 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 15. **`php artisan migrate --env=testing` without a `.env.testing` runs against `.env`** (the dev database). Tests get their database from `phpunit.xml`; never pass `--env=testing` by hand.
 17. **Console events in tests**: Laravel only reroutes Symfony console events (`CommandStarting`) outside unit tests; tests that check the CLI actor need the `WithConsoleEvents` trait.
 18. **Dots in JSON keys**: `assertJsonPath('data.knowledge_versions.1.0')` reads `1` then `0`. Compare the whole map instead.
+19. **Sticky vs sticky**: an emergency bar `sticky top-0` covered the sticky site header when scrolling. A bar fixed at the bottom keeps both visible.
+20. **The app persists preferences on every Redux action**: a test script that writes `localStorage` and reloads can be overwritten by the running app. Seed storage from a static page of the same origin first.
 16. **PHP arrow functions capture by value**: `fn () => array_shift($queue)` always shifts a fresh copy. Use `function () use (&$queue)` for sequences in fakes.
 
 ---

@@ -12,7 +12,7 @@ International medical **orientation** and **doctor discovery** platform. Patient
 |---|---|
 | `BACK/sahtek/` | Laravel 10 API — V2 under `/api/v1`, legacy V1 under `/api` |
 | `frontend/` | V2 web app — React 19, TypeScript, Vite, Redux Toolkit (RTK Query), Tailwind 4, i18next (EN/FR/AR + RTL) |
-| `front/sahtek/` | Legacy V1 React app (kept for reference) |
+| *(removed)* `front/sahtek/` | Legacy V1 React app (CRA). Archived in the git tag `archive/front-v1`: `git checkout archive/front-v1 -- front/sahtek` |
 | `docs/` | Requirements, architecture, database, API, roadmap, V1 migration, deployment, [knowledge sources and licences](docs/sources.md) |
 | `LEARN.md` | Progress checklist, decisions and lessons learned |
 

@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useAppSelector } from '../../app/store';
-import { Alert, Badge, Card, PageLoader } from '../../components/common/ui';
+import { Alert, Badge, Card, PageLoader, ErrorState } from '../../components/common/ui';
 import { DoctorAvatar, DoctorStatusBadge } from '../../components/doctors/DoctorCard';
 import { FavoriteButton } from '../../components/doctors/FavoriteButton';
 import { MapView } from '../../components/doctors/MapView';
-import { errorMessage } from '../../utils/errors';
 import { formatFee } from '../../utils/format';
 import { useDoctorQuery } from './doctorsApi';
 
@@ -13,16 +12,16 @@ export default function DoctorProfilePage() {
   const { t, i18n } = useTranslation();
   const { slug = '' } = useParams();
   const locale = useAppSelector((s) => s.preferences.locale);
-  const { data: d, isLoading, error } = useDoctorQuery({ id: slug, locale });
+  const { data: d, isLoading, error, refetch } = useDoctorQuery({ id: slug, locale });
 
   if (isLoading) return <PageLoader />;
-  if (error || !d) return <Alert tone="danger">{errorMessage(error, t('errors.notFound'))}</Alert>;
+  if (error || !d) return <ErrorState error={error} onRetry={refetch} fallback={t('errors.notFound')} />;
 
   const primary = d.locations?.find((l) => l.is_primary) ?? d.locations?.[0];
 
   return (
     <div className="space-y-6">
-      <Link to="/doctors" className="text-sm text-brand-700 hover:underline">← {t('doctors.backToResults')}</Link>
+      <Link to="/doctors" className="text-sm text-brand-700 inline-flex min-h-11 items-center gap-1 hover:underline"><span aria-hidden className="inline-block rtl:rotate-180">←</span> {t('doctors.backToResults')}</Link>
       {d.is_demo && <Alert tone="warning" title={t('doctor.demoProfile')}>{t('doctor.demoExplanation')}</Alert>}
 
       <Card>

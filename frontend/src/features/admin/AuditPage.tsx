@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, EmptyState, Input, PageLoader, Pagination, Select } from '../../components/common/ui';
-import { errorMessage } from '../../utils/errors';
+import { Button, Card, EmptyState, Input, PageLoader, Pagination, Select, ErrorState } from '../../components/common/ui';
 import { formatDate } from '../../utils/format';
 import { useAdminListQuery } from './adminApi';
 
@@ -46,13 +45,7 @@ export default function AuditPage() {
           <Button variant="secondary" type="submit">{t('admin.search')}</Button>
         </form>
 
-        {error && (
-          <Alert tone="danger">
-            {errorMessage(error, t('errors.network'))}{' '}
-            <Button variant="ghost" className="px-2 py-1" onClick={() => refetch()}>{t('common.retry')}</Button>
-          </Alert>
-        )}
-        {!data ? (!error && <PageLoader />) : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
+        {error && !data ? <ErrorState error={error} onRetry={refetch} /> : !data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
           <ul className={`divide-y divide-slate-100 ${isFetching ? 'opacity-60' : ''}`}>
             {data.data.map((log) => {
               const oldValues = (log.old_values ?? null) as Values;

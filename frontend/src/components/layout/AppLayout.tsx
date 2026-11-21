@@ -11,7 +11,7 @@ import { LocationLanguagePicker } from './LocationLanguagePicker';
 
 export function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2" aria-label="docTHub">
+    <Link to="/" className="flex min-h-11 items-center gap-2" aria-label="docTHub">
       <img src="/logo.svg" alt="" className="h-9 w-9" />
       <span className="text-xl font-bold tracking-tight text-slate-900">doc<span className="text-brand-600">TH</span>ub</span>
     </Link>
@@ -19,7 +19,7 @@ export function Logo() {
 }
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
-  cx('rounded-lg px-3 py-2 text-sm font-medium', isActive ? 'bg-brand-50 text-brand-800' : 'text-slate-600 hover:text-slate-900');
+  cx('inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium', isActive ? 'bg-brand-50 text-brand-800' : 'text-slate-600 hover:text-slate-900');
 
 export function useLogout() {
   const dispatch = useAppDispatch();
@@ -62,16 +62,16 @@ function Header() {
           {isAuthenticated ? (
             <>
               {isPatient && <Link to="/profile" className="text-sm font-medium text-slate-700 hover:text-brand-700">{user?.patient?.first_name ?? user?.name}</Link>}
-              <button onClick={logout} className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">{t('nav.logout')}</button>
+              <button onClick={logout} className="min-h-11 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100">{t('nav.logout')}</button>
             </>
           ) : (
             <>
-              <Link to="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">{t('nav.login')}</Link>
-              <Link to="/register" className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">{t('nav.register')}</Link>
+              <Link to="/login" className="inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">{t('nav.login')}</Link>
+              <Link to="/register" className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">{t('nav.register')}</Link>
             </>
           )}
         </div>
-        <button className="rounded-lg p-2 text-slate-700 lg:hidden" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((o) => !o)}>
+        <button className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-slate-700 lg:hidden" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((o) => !o)}>
           <span className="sr-only">{t('nav.menu')}</span>
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
@@ -112,12 +112,12 @@ function Footer() {
         </div>
         <div className="space-y-1">
           <p className="font-semibold text-slate-800">{t('footer.platform')}</p>
-          <Link className="block hover:text-brand-700" to="/symptom-checker">{t('nav.checkSymptoms')}</Link>
-          <Link className="block hover:text-brand-700" to="/doctors">{t('nav.findDoctor')}</Link>
+          <Link className="flex min-h-11 items-center hover:text-brand-700" to="/symptom-checker">{t('nav.checkSymptoms')}</Link>
+          <Link className="flex min-h-11 items-center hover:text-brand-700" to="/doctors">{t('nav.findDoctor')}</Link>
         </div>
         <p className="text-xs leading-relaxed text-slate-500">{t('disclaimer.footer')}</p>
       </div>
-      <p className="border-t border-slate-100 py-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} docTHub</p>
+      <p className="border-t border-slate-100 py-4 text-center text-xs text-slate-500">© {new Date().getFullYear()} docTHub</p>
     </footer>
   );
 }

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../app/store';
-import { Alert, Badge, EmptyState, PageLoader, Pagination } from '../../components/common/ui';
-import { errorMessage } from '../../utils/errors';
+import { Badge, EmptyState, PageLoader, Pagination, ErrorState } from '../../components/common/ui';
 import { formatDate } from '../../utils/format';
 import { useHistoryQuery } from './patientApi';
 
@@ -11,12 +10,12 @@ export default function HistoryPage() {
   const { t, i18n } = useTranslation();
   const locale = useAppSelector((s) => s.preferences.locale);
   const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useHistoryQuery({ page, locale });
+  const { data, isLoading, error, refetch } = useHistoryQuery({ page, locale });
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-slate-900">{t('nav.history')}</h1>
-      {isLoading ? <PageLoader /> : error ? <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert> : !data?.data.length ? (
+      {isLoading ? <PageLoader /> : error ? <ErrorState error={error} onRetry={refetch} /> : !data?.data.length ? (
         <EmptyState icon="📋" title={t('history.empty')}><Link to="/symptom-checker" className="text-brand-700 underline">{t('nav.checkSymptoms')}</Link></EmptyState>
       ) : (
         <>

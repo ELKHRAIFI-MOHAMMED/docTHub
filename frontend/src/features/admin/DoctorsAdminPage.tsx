@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../app/store';
-import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select, Textarea } from '../../components/common/ui';
+import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select, Textarea, ErrorState } from '../../components/common/ui';
 import { errorMessage, fieldErrors } from '../../utils/errors';
 import { useCitiesQuery, useCountriesQuery, useLanguagesQuery } from '../catalog/catalogApi';
 import {
@@ -221,7 +221,7 @@ export default function DoctorsAdminPage() {
   const [search, setSearch] = useState('');
   const [verification, setVerification] = useState('');
   const [editing, setEditing] = useState<number | 'new' | null>(null);
-  const { data, error, isFetching } = useAdminListQuery({ resource: 'doctors', page, q: search, extra: { verification_status: verification } });
+  const { data, error, isFetching, refetch } = useAdminListQuery({ resource: 'doctors', page, q: search, extra: { verification_status: verification } });
 
   return (
     <div className="space-y-4">
@@ -239,8 +239,7 @@ export default function DoctorsAdminPage() {
           </Select>
           <Button variant="secondary" type="submit">{t('admin.search')}</Button>
         </form>
-        {error && <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert>}
-        {!data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
+        {error && !data ? <ErrorState error={error} onRetry={refetch} /> : !data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
           <div className={`overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}>
             <table className="w-full text-sm">
               <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">

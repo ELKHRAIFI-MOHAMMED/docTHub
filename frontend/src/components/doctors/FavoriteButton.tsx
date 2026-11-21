@@ -16,7 +16,7 @@ export function FavoriteButton({ doctorId, isFavorite }: { doctorId: number; isF
       className="rounded-full p-1.5 text-xl leading-none hover:bg-rose-50 disabled:opacity-50"
       title={isFavorite ? t('doctor.removeFavorite') : t('doctor.addFavorite')}
     >
-      <span aria-hidden className={isFavorite ? 'text-rose-500' : 'text-slate-300'}>♥</span>
+      <span aria-hidden className={isFavorite ? 'text-rose-600' : 'text-slate-500'}>♥</span>
       <span className="sr-only">{isFavorite ? t('doctor.removeFavorite') : t('doctor.addFavorite')}</span>
     </button>
   );

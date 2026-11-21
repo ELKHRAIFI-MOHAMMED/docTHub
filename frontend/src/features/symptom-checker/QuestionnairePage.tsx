@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector } from '../../app/store';
-import { Alert, Button, Card, PageLoader } from '../../components/common/ui';
+import { Alert, Button, Card, ErrorState, PageLoader } from '../../components/common/ui';
 import { errorMessage, errorStatus } from '../../utils/errors';
 import type { Question, QuestionnaireState } from '../../types/api';
 import { useEvaluateMutation, useQuestionsQuery, useSubmitAnswersMutation } from './assessmentApi';
+import { clearInProgress, saveInProgress } from './inProgress';
 import { isAnswerFilled, QuestionField, type DraftAnswer } from './QuestionField';
 
 /** Step 2: dynamic questionnaire, one question at a time. The URL holds the assessment id (refresh-safe). */
@@ -14,7 +15,7 @@ export default function QuestionnairePage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const locale = useAppSelector((s) => s.preferences.locale);
-  const { data: fetched, isLoading, error } = useQuestionsQuery({ id, locale });
+  const { data: fetched, isLoading, error, refetch } = useQuestionsQuery({ id, locale });
   const [submit, { isLoading: saving, error: saveError }] = useSubmitAnswersMutation();
   const [evaluate, { isLoading: evaluating, error: evalError }] = useEvaluateMutation();
 
@@ -26,8 +27,15 @@ export default function QuestionnairePage() {
     if (fetched) {
       setState(fetched);
       setCurrentId(fetched.next_question_id);
+      if (fetched.status === 'in_progress') saveInProgress(id); // can be resumed from the start page
     }
-  }, [fetched]);
+  }, [fetched, id]);
+
+  // A stored assessment that no longer exists or belongs to someone else is not offered again.
+  useEffect(() => {
+    const status = errorStatus(error);
+    if (status === 403 || status === 404) clearInProgress(id);
+  }, [error, id]);
 
   // Already evaluated (e.g. back button): go to the results.
   useEffect(() => {
@@ -71,10 +79,11 @@ export default function QuestionnairePage() {
 
   if (isLoading || !state) {
     if (error) {
+      const gone = errorStatus(error) === 403 || errorStatus(error) === 404;
       return (
-        <Alert tone="danger" title={errorStatus(error) === 403 ? t('errors.forbidden') : t('errors.notFound')}>
-          <Link to="/symptom-checker" className="underline">{t('checker.startAgain')}</Link>
-        </Alert>
+        <ErrorState error={error} onRetry={gone ? undefined : refetch} fallback={errorStatus(error) === 403 ? t('errors.forbidden') : undefined}>
+          <Link to="/symptom-checker" className="mt-2 inline-flex min-h-11 items-center underline">{t('checker.startAgain')}</Link>
+        </ErrorState>
       );
     }
     return <PageLoader />;

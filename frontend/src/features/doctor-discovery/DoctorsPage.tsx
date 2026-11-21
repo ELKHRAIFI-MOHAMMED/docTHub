@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../../app/store';
-import { Alert, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select } from '../../components/common/ui';
+import { Alert, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select, ErrorState } from '../../components/common/ui';
 import { DoctorCard } from '../../components/doctors/DoctorCard';
 import { LocationLanguagePicker } from '../../components/layout/LocationLanguagePicker';
 import { useSelectedLocation } from '../../hooks/useLocation';
-import { errorMessage } from '../../utils/errors';
 import { useLanguagesQuery, useSpecialtiesQuery } from '../catalog/catalogApi';
 import { useSearchDoctorsQuery, type DoctorFilters } from './doctorsApi';
 
@@ -38,7 +37,7 @@ export default function DoctorsPage() {
     ...(coords ? { lat: coords.lat, lng: coords.lng } : cityId ? { city_id: cityId } : countryId ? { country_id: countryId } : {}),
   };
   const hasLocation = Boolean(coords || cityId || countryId);
-  const { data, isFetching, error } = useSearchDoctorsQuery(filters, { skip: !hasLocation });
+  const { data, isFetching, error, refetch } = useSearchDoctorsQuery(filters, { skip: !hasLocation });
 
   const update = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(params);
@@ -132,7 +131,7 @@ export default function DoctorsPage() {
               <div className="mt-4 flex justify-center"><LocationLanguagePicker /></div>
             </EmptyState>
           ) : error ? (
-            <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert>
+            <ErrorState error={error} onRetry={refetch} />
           ) : !data ? (
             <PageLoader />
           ) : data.data.length === 0 ? (

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select, Textarea } from '../../components/common/ui';
+import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageLoader, Pagination, Select, Textarea, ErrorState } from '../../components/common/ui';
 import { errorMessage, fieldErrors } from '../../utils/errors';
 import { useAdminActionMutation, useAdminDeleteMutation, useAdminListQuery, useAdminSaveMutation, useAdminStatusMutation, type AdminRecord } from './adminApi';
 import { RESOURCES, TRANSLATION_LOCALES, type FieldDef, type ResourceDef } from './resources';
@@ -132,7 +132,7 @@ export default function ResourcePage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [editing, setEditing] = useState<AdminRecord | null | 'new'>(null);
-  const { data, isFetching, error } = useAdminListQuery({ resource, page, q: search, status }, { skip: !def });
+  const { data, isFetching, error, refetch } = useAdminListQuery({ resource, page, q: search, status }, { skip: !def });
   const [changeStatus] = useAdminStatusMutation();
   const [remove, { error: removeError }] = useAdminDeleteMutation();
   const [runAction, { error: actionError, isLoading: acting }] = useAdminActionMutation();
@@ -160,8 +160,8 @@ export default function ResourcePage() {
           )}
           <Button type="submit" variant="secondary">{t('admin.search')}</Button>
         </form>
-        {(error || removeError || actionError) && <Alert tone="danger">{errorMessage(error ?? removeError ?? actionError, t('errors.network'))}</Alert>}
-        {!data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
+        {(removeError || actionError) && <Alert tone="danger">{errorMessage(removeError ?? actionError, t('errors.network'))}</Alert>}
+        {error && !data ? <ErrorState error={error} onRetry={refetch} /> : !data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
           <div className={`overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}>
             <table className="w-full text-start text-sm">
               <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">

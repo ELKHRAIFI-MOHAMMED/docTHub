@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Badge, Button, Card, EmptyState, Input, PageLoader, Pagination } from '../../components/common/ui';
-import { errorMessage } from '../../utils/errors';
+import { Badge, Button, Card, EmptyState, Input, PageLoader, Pagination, ErrorState } from '../../components/common/ui';
 import { useAdminListQuery, useSetPatientActiveMutation } from './adminApi';
 
 /** Patients: account data and counts only (no assessment content: data minimisation). */
@@ -10,7 +9,7 @@ export default function PatientsAdminPage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [search, setSearch] = useState('');
-  const { data, error } = useAdminListQuery({ resource: 'patients', page, q: search });
+  const { data, error, refetch } = useAdminListQuery({ resource: 'patients', page, q: search });
   const [setActive] = useSetPatientActiveMutation();
 
   return (
@@ -21,8 +20,7 @@ export default function PatientsAdminPage() {
           <Input className="max-w-xs" type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('admin.search')} placeholder={t('admin.search')} />
           <Button variant="secondary" type="submit">{t('admin.search')}</Button>
         </form>
-        {error && <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert>}
-        {!data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
+        {error && !data ? <ErrorState error={error} onRetry={refetch} /> : !data ? <PageLoader /> : data.data.length === 0 ? <EmptyState title={t('admin.noRecords')} /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">

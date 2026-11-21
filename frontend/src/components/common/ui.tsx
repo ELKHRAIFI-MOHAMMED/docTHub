@@ -1,12 +1,13 @@
 import { forwardRef, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
+import { errorMessage, errorStatus } from '../../utils/errors';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 const variants: Record<Variant, string> = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-200',
-  secondary: 'bg-white text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50 disabled:text-slate-400',
+  secondary: 'bg-white text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50 disabled:text-slate-500',
   ghost: 'text-slate-600 hover:bg-slate-100',
   danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
 };
@@ -16,7 +17,7 @@ export function Button({ variant = 'primary', loading, className, children, ...p
     <button
       {...props}
       disabled={props.disabled || loading}
-      className={cx('inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed', variants[variant], className)}
+      className={cx('inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed', variants[variant], className)}
     >
       {loading && <Spinner small />}
       {children}
@@ -38,8 +39,41 @@ export function Spinner({ small, label }: { small?: boolean; label?: string }) {
   );
 }
 
-export function PageLoader() {
-  return <div className="flex justify-center py-16"><Spinner /></div>;
+/** Placeholder block shown while content loads. */
+export function Skeleton({ className }: { className?: string }) {
+  return <div aria-hidden className={cx('animate-pulse rounded-lg bg-slate-200', className)} />;
+}
+
+/** Loading state of a page or section: skeleton lines shaped like the content, announced to screen readers. */
+export function PageLoader({ rows = 3 }: { rows?: number }) {
+  const { t } = useTranslation();
+  return (
+    <div role="status" aria-busy="true" className="space-y-4 py-4">
+      <span className="sr-only">{t('common.loading')}</span>
+      <Skeleton className="h-7 w-1/2" />
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="space-y-2 rounded-2xl bg-white p-4 ring-1 ring-slate-200/70">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Error state of a query: clear message and a Retry button (not for 404: retrying cannot help). */
+export function ErrorState({ error, onRetry, fallback, children }: { error: unknown; onRetry?: () => void; fallback?: string; children?: ReactNode }) {
+  const { t } = useTranslation();
+  const notFound = errorStatus(error) === 404;
+  return (
+    <div role="alert" className="rounded-2xl bg-red-50 p-5 text-red-900 ring-1 ring-red-200">
+      <p className="font-semibold">{notFound ? t('errors.notFound') : t('errors.loadFailed')}</p>
+      <p className="mt-1 text-sm">{errorMessage(error, fallback ?? t('errors.network'))}</p>
+      {children}
+      {onRetry && !notFound && <Button variant="secondary" className="mt-3" onClick={onRetry}>{t('common.retry')}</Button>}
+    </div>
+  );
 }
 
 export function EmptyState({ title, children, icon = '🔍' }: { title: string; children?: ReactNode; icon?: string }) {
@@ -89,7 +123,7 @@ export function Field({ label, error, hint, children, required }: FieldProps) {
   );
 }
 
-const inputBase = 'block w-full rounded-xl border-0 bg-white px-3 py-2.5 text-sm text-slate-900 ring-1 ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500 aria-[invalid=true]:ring-red-400';
+const inputBase = 'block min-h-11 w-full rounded-xl border-0 bg-white px-3 py-2.5 text-sm text-slate-900 ring-1 ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-brand-500 aria-[invalid=true]:ring-red-400';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...p }, ref) {
   return <input ref={ref} {...p} className={cx(inputBase, className)} />;

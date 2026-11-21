@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Alert, Card, PageLoader } from '../../components/common/ui';
-import { errorMessage } from '../../utils/errors';
+import { Alert, Card, PageLoader, ErrorState } from '../../components/common/ui';
 import { useAdminDashboardQuery } from './adminApi';
 
 interface Stats {
@@ -27,9 +26,9 @@ function Stat({ label, value, hint }: { label: string; value: number | string; h
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { data, isLoading, error } = useAdminDashboardQuery();
+  const { data, isLoading, error, refetch } = useAdminDashboardQuery();
   if (isLoading) return <PageLoader />;
-  if (error || !data) return <Alert tone="danger">{errorMessage(error, t('errors.network'))}</Alert>;
+  if (error || !data) return <ErrorState error={error} onRetry={refetch} />;
   const s = data as unknown as Stats;
 
   const days = Object.entries(s.assessments_last_30_days);

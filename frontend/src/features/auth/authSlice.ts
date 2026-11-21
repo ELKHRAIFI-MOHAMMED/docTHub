@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { User } from '../../types/api';
+import { clearInProgress } from '../symptom-checker/inProgress';
 
 const TOKEN_KEY = 'docthub.token';
 
@@ -32,6 +33,7 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       localStorage.removeItem(TOKEN_KEY);
+      clearInProgress(); // another person may use this device next
     },
   },
 });
