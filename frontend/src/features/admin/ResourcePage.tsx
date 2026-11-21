@@ -167,7 +167,7 @@ export default function ResourcePage() {
               <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
                 <tr>
                   {def.columns.map((c) => <th key={c.name} className="px-2 py-2 text-start font-semibold">{c.label}</th>)}
-                  <th className="px-2 py-2 text-end font-semibold">{t('admin.actions')}</th>
+                  <th className="sticky end-0 border-s border-slate-100 bg-white px-2 py-2 text-end font-semibold">{t('admin.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -178,14 +178,14 @@ export default function ResourcePage() {
                         {c.name === def.statusColumn ? <Badge tone={r[c.name] === 'published' || r[c.name] === 'approved' ? 'success' : 'neutral'}>{display(r[c.name])}</Badge> : display(r[c.name])}
                       </td>
                     ))}
-                    <td className="whitespace-nowrap px-2 py-2 text-end">
-                      <div className="inline-flex flex-wrap justify-end gap-1">
+                    <td className="sticky end-0 whitespace-nowrap border-s border-slate-100 bg-white px-2 py-2 text-end">
+                      <div className="inline-flex flex-nowrap items-center justify-end gap-1">
                         <Button variant="ghost" className="px-2 py-1" onClick={() => setEditing(r)}>{t('admin.edit')}</Button>
                         {def.actions?.map((a) => (
                           <Button key={a.label} variant="ghost" className="px-2 py-1" disabled={acting} onClick={() => runAction(a.path(r.id))}>{t(a.label)}</Button>
                         ))}
                         {def.statuses && (
-                          <Select className="w-auto py-1 text-xs" value="" aria-label={t('admin.changeStatus')} onChange={(e) => e.target.value && changeStatus({ resource: def.key, id: r.id, status: e.target.value })}>
+                          <Select className="w-auto! py-1 text-xs" value="" aria-label={t('admin.changeStatus')} onChange={(e) => e.target.value && changeStatus({ resource: def.key, id: r.id, status: e.target.value })}>
                             <option value="">{t('admin.changeStatus')}</option>
                             {def.statuses.filter((s) => s !== r[def.statusColumn!]).map((s) => <option key={s} value={s}>{s}</option>)}
                           </Select>

@@ -5,6 +5,8 @@ import { setCity, setCountry, setLocale, type Locale } from '../../features/pref
 import { useSelectedLocation } from '../../hooks/useLocation';
 import { cx } from '../common/ui';
 
+const NATIVE_NAMES: Record<Locale, string> = { en: 'English', fr: 'Français', ar: 'العربية' };
+
 const selectCls = 'min-h-11 rounded-lg border-0 bg-white/90 py-1.5 ps-2 pe-7 text-sm text-slate-700 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500';
 
 /** Country, city and language selectors. All options come from the API. */
@@ -35,7 +37,8 @@ export function LocationLanguagePicker({ compact, className }: { compact?: boole
 
       <label className="sr-only" htmlFor="pick-lang">{t('location.language')}</label>
       <select id="pick-lang" className={selectCls} value={locale} onChange={(e) => dispatch(setLocale(e.target.value as Locale))}>
-        {(languages.length ? languages : [{ code: 'en', native_name: 'English' }]).map((l) => (
+        {/* Until the list is loaded, show the active language (not a default one). */}
+        {(languages.length ? languages : [{ code: locale, native_name: NATIVE_NAMES[locale] }]).map((l) => (
           <option key={l.code} value={l.code}>{l.native_name}</option>
         ))}
       </select>

@@ -192,7 +192,7 @@ function DoctorForm({ record, onClose, locale, t }: { record: AdminRecord | null
               </ul>
             )}
             <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={fileUpload('documents')}>
-              <Select name="type" className="w-auto" aria-label="Document type">{['license', 'diploma', 'identity', 'other'].map((x) => <option key={x}>{x}</option>)}</Select>
+              <Select name="type" className="w-auto!" aria-label="Document type">{['license', 'diploma', 'identity', 'other'].map((x) => <option key={x}>{x}</option>)}</Select>
               <input name="file" type="file" accept=".pdf,.jpg,.jpeg,.png" required className="text-sm" aria-label={t('admin.uploadDocument')} />
               <Button type="submit" variant="secondary" loading={uploading}>{t('admin.uploadDocument')}</Button>
             </form>
