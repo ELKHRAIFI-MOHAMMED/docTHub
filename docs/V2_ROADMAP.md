@@ -14,7 +14,9 @@ Status legend: ✅ done · 🟡 partial · ⬜ not started · ⏸ deferred (need
 | 5 Patient features | Email notifications | ⏸ |
 | 7 Data collection | Source provenance + change detection, version stamps, case summary, follow-up, analytics, pseudonymised export | ✅ |
 | 7 Data collection | AI rewriting of the summary (voie B) | ⬜ |
-| 6 Quality & deployment | Backend feature/unit tests, frontend tests, deployment guide | ✅ (CI pipeline ⬜) |
+| 6 Quality & deployment | Backend feature/unit tests, frontend tests, deployment guide, CI (GitHub Actions) | ✅ |
+| Data pipeline | Phase 1 raw layer · Phase 2 import · Phase 3 `knowledge:validate` + CI | ✅ |
+| Data pipeline | Phase 4 versioned exports · Phase 5 front-end | ⬜ |
 
 `LEARN.md` holds the live progress checklist; this file lists the plan and the open decisions.
 

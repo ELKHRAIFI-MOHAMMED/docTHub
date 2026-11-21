@@ -22,9 +22,10 @@ class Disease extends Model
         'code', 'name', 'description', 'specialty_id', 'severity', 'status', 'review_status',
         'source_name', 'source_url', 'source_document_id', 'is_sample',
         'external_system', 'external_code', 'external_uri', 'needs_translation', 'version',
+        'reviewed_by_name', 'reviewed_at',
     ];
 
-    protected $casts = ['is_sample' => 'boolean', 'needs_translation' => 'array'];
+    protected $casts = ['is_sample' => 'boolean', 'needs_translation' => 'array', 'reviewed_at' => 'datetime'];
 
     public function aliases(): MorphMany
     {

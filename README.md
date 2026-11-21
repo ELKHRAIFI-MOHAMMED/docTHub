@@ -28,12 +28,15 @@ cd frontend && npm install && cp .env.example .env && npm run dev
 
 Demo logins (development only): `admin@docthub.test` / `Admin12345`, `patient@docthub.test` / `Patient12345`.
 
-## Tests
+## Tests and quality gate
 
 ```bash
 cd BACK/sahtek && php artisan test
 cd frontend && npm test
+cd BACK/sahtek && php artisan knowledge:validate          # medical knowledge checks; exit code 1 on any error
 ```
+
+CI (GitHub Actions, `.github/workflows/ci.yml`): API tests on MySQL 8, web app typecheck + tests + build, and a `knowledge:validate` report on the sample catalog (expected to fail until real content is reviewed; report only).
 
 ## Knowledge pipeline (raw layer)
 

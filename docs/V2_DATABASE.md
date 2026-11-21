@@ -98,6 +98,7 @@ Knowledge pipeline (phase 1 of the data pipeline, migration `2025_03_01_000001`)
 Knowledge import (migration `2025_03_02_000001`):
 - `symptoms` and `diseases`: `external_system` (`icd11`, `medlineplus`), `external_code`, `external_uri` — unique(external_system, external_code); `needs_translation` (json list of locales with no text); `version`; `symptoms.source_document_id`.
 - `diseases.severity` is now **nullable, no default** (imported conditions get no severity).
+- `diseases` and `orientation_rules`: `reviewed_by_name`, `reviewed_at` (migration `2025_03_03_000001`; `reviewed_at` stamped when an approved item gets a reviewer). Rule `priority` limited to 0..100 in the admin.
 - `knowledge_aliases`: aliasable_type, aliasable_id, locale, alias, normalized — unique(aliasable_type, locale, normalized); source_document_id.
 
 New columns: `source_document_id` on `medical_guidelines`, `orientation_rules`, `diseases`; `summary_template`\* on `symptom_questions`; `questionnaire_version`, `ruleset_version` on `symptom_assessments`.

@@ -29,6 +29,8 @@ class DiseaseController extends AdminCrudController
             'status' => ['sometimes', Rule::in(Disease::STATUSES)],
             'review_status' => ['sometimes', Rule::in(Disease::REVIEW_STATUSES)],
             'source_name' => ['nullable', 'string', 'max:255', 'required_if:review_status,approved'],
+            // Name of the qualified person who reviewed it (checked by knowledge:validate for approved items).
+            'reviewed_by_name' => ['nullable', 'string', 'max:255'],
             'source_url' => ['nullable', 'url', 'max:500'],
             'source_document_id' => ['nullable', 'integer', 'exists:source_documents,id'],
             'is_sample' => ['sometimes', 'boolean'],

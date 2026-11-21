@@ -86,12 +86,21 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 - ✅ Tests: +9 backend (88 total)
 - ⬜ Type (symptom vs condition) chosen by the operator: ICD-11 chapter ranges not verified on an official page
 
+### Data pipeline V2 — phase 3: quality checks
+- ✅ `knowledge:validate [--format=table|markdown|json] [--strict]`: broken links (rules, conditions, guidelines, options, aliases; soft-deleted = missing), approved items (EN/FR/AR, source, reviewer, version), duplicate codes / external identities, severity and priority 0..100, unlinked conditions (error if approved/published, warning if draft), emergency rules without reviewer
+- ✅ `reviewed_by_name` / `reviewed_at` on diseases and rules; admin fields; rule priority 0..100
+- ✅ Sample catalog result: **13 errors** = 8 emergency rules without reviewer + 5 published sample conditions without any symptom (not fixed: that would be inventing links)
+- ✅ GitHub Actions: API tests on MySQL 8 (blocking), web app typecheck/tests/build (blocking), validate report on the sample catalog (non-blocking)
+- ✅ Tests: +9 backend (97 total)
+- ⬜ The workflow has not run yet on GitHub (no push done)
+- ⬜ Approving through the admin does not yet *refuse* a missing reviewer (the validator reports it); enforcing it changes an existing admin test
+
 ### Phase 6 — Quality & deployment
 - ✅ Backend: 50 tests / 276 assertions (feature + unit) — auth, authorisation, validation, rules, emergency rules, discovery, admin, privacy
 - ✅ Frontend: 23 tests (components, forms, API integration with mocked fetch, RTL, i18n key parity, auth guards)
 - ✅ End-to-end run in real Chrome (playwright-core, not committed): normal flow, emergency flow, RTL, registration + favourite, admin
 - ✅ Production build; deployment guide (`docs/DEPLOYMENT.md`)
-- ⬜ CI pipeline (GitHub Actions) — not set up
+- ✅ CI pipeline (GitHub Actions) — `.github/workflows/ci.yml` (data pipeline phase 3)
 - ⬜ Bundle splitting: main chunk 510 kB (166 kB gzip); split vendor/i18n if needed
 - ⬜ Booking concurrency tests — N/A until appointments exist
 

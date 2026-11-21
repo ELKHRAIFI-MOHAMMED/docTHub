@@ -28,6 +28,7 @@ class OrientationRule extends Model
         'code', 'name', 'description', 'body_part_id', 'question_id', 'operator', 'expected_value', 'conditions',
         'priority', 'result_type', 'disease_id', 'specialty_id', 'guideline_id', 'emergency_severity', 'weight',
         'message', 'source_name', 'source_url', 'source_document_id', 'validation_status', 'version', 'is_sample',
+        'reviewed_by_name', 'reviewed_at',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class OrientationRule extends Model
         'priority' => 'integer',
         'weight' => 'integer',
         'version' => 'integer',
+        'reviewed_at' => 'datetime',
     ];
 
     public function bodyPart(): BelongsTo
