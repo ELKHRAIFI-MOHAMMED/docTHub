@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* docTHub visual identity: medical cyan/blue, white surfaces, soft neutral greys. */
+@theme {
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0891b2;
+  --color-brand-700: #0e7490;
+  --color-brand-800: #155e75;
+  --color-brand-900: #164e63;
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Noto Sans", "Noto Sans Arabic", Roboto, sans-serif;
+}
+
+html[dir="rtl"] body {
+  font-family: "Segoe UI", "Noto Sans Arabic", Tahoma, system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+/* Body map regions */
+.body-region {
+  fill: #e2e8f0;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 120ms ease;
+}
+.body-region:hover { fill: var(--color-brand-100); }
+.body-region[aria-pressed="true"] { fill: var(--color-brand-500); stroke: var(--color-brand-800); }
+.body-region:focus-visible { outline: none; stroke: var(--color-brand-800); stroke-width: 3; }
+
+@media print {
+  header, footer, nav, .no-print, a[href="#main"] { display: none !important; }
+  body { background: #fff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('docthub:sources:check')->dailyAt('03:00')->withoutOverlapping();
+        $schedule->command('docthub:send-follow-ups')->dailyAt('10:00')->withoutOverlapping();
     }
 
     /**

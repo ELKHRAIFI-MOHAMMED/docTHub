@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture des données docTHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: technical briefing for investors, calm and exact, every step real
+   IDEA a transit map: two lines (validated knowledge, patient answers) merge at the engine and continue to a clear summary
+   PICTURE the metro map of the data journey, then one UML drawing per stage
+   COLOUR white ground, docTHub cyan for the patient line, blue for knowledge, red only for emergency; planned = dashed grey
+   TYPE Figtree 800 titles + Figtree text
+   LAYOUT cyan title band, map beneath full width; sections = text beside or above its diagram; tables full width */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e1116);--ink:light-dark(#0f172a,#e6edf3);--ink2:light-dark(#334155,#c3ccd6);--muted:light-dark(#5b6676,#93a1b0);
+--line:light-dark(#cbd5e1,#2d3742);--panel:light-dark(#ffffff,#151b22);--soft:light-dark(#ecfeff,#0f2a31);--head:light-dark(#cffafe,#123a44);
+--brand:light-dark(#0891b2,#22d3ee);--know:light-dark(#1d4ed8,#60a5fa);--red:light-dark(#dc2626,#f87171);
+--lane1:light-dark(#f8fafc,#121820);--lane2:light-dark(#eef2f6,#18202a);--band:light-dark(#0e7490,#0b3540)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Figtree,"Segoe UI",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,60px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2,h3{font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,4.6vw,50px)}
+h2{font-size:clamp(26px,3vw,34px);margin-bottom:12px}
+h3{font-size:19px;margin:22px 0 6px}
+p{margin:0 0 12px;max-width:72ch}
+.top{background:var(--band);color:#fff}
+.top p{color:#e0f7fb;font-size:18px}
+.note{display:inline-block;background:#ffffff1f;border:1px solid #ffffff55;border-radius:10px;padding:8px 12px;font-size:14px;margin-top:6px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(10em,1fr));gap:12px;margin-top:22px}
+.figs div{border-top:2px solid #ffffff66;padding-top:8px}
+.figs b{display:block;font-size:clamp(26px,3vw,34px);font-weight:800;line-height:1.1}
+.figs span{font-size:14px;color:#d5f3f8}
+nav.scroll{display:flex;gap:6px;padding:10px max(5vw,16px);border-bottom:1px solid var(--line);background:var(--bg);overflow-x:auto}
+nav.scroll a{flex:none;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:600;padding:8px 10px;border-radius:8px}
+nav.scroll a:hover,nav.scroll a:focus-visible{background:var(--soft);color:var(--brand)}
+@media(min-width:900px){nav.scroll{position:sticky;top:0;z-index:5}}
+section.band{border-bottom:1px solid var(--line)}
+.lead{font-size:18px;color:var(--ink2)}
+.dia{overflow-x:auto;margin:18px 0 8px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.dia svg{display:block;width:100%;min-width:900px;height:auto;color:var(--ink2)}
+.dia.wide svg{min-width:960px}
+figure{margin:0}
+figcaption{font-size:15px;color:var(--ink2);max-width:80ch}
+figcaption b{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--ink2);margin:8px 0}
+.legend i{display:inline-block;width:28px;height:0;border-top:5px solid;vertical-align:middle;margin-inline-end:6px;border-radius:3px}
+.legend i.d{border-top:3px dashed var(--muted)}
+svg text{font-family:Figtree,"Segoe UI",sans-serif;font-size:14px;font-weight:600;fill:var(--ink)}
+svg .s{font-size:12px;font-weight:500;fill:var(--muted)}
+svg .h{font-weight:800}
+svg .lbl{paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round}
+svg .lane-t{font-size:14px;font-weight:800;fill:var(--ink2)}
+.box{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.plan{stroke-dasharray:6 5}
+.hd{fill:var(--head);stroke:var(--line);stroke-width:1.5}
+.ln{fill:none;stroke:var(--ink2);stroke-width:1.6}
+.ln.r{stroke-dasharray:6 5}
+.l1{fill:var(--lane1)}.l2{fill:var(--lane2)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22em),1fr));gap:24px;margin-top:8px}
+.card{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--panel)}
+.card h3{margin-top:0}
+.chip{display:inline-block;font-size:13px;font-weight:700;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.ok{background:var(--soft);color:var(--brand)}
+.pl{border:1.5px dashed var(--muted);color:var(--muted)}
+.part{background:light-dark(#fef3c7,#3a2e10);color:light-dark(#92400e,#fbbf24)}
+pre{overflow-x:auto;background:var(--lane2);border-radius:12px;padding:14px;font-size:13px;line-height:1.5;margin:0}
+code{font-family:Consolas,"SFMono-Regular",monospace;overflow-wrap:anywhere}
+.quote{border-inline-start:4px solid var(--brand);padding:6px 0 6px 16px;font-size:17px}
+.bars{display:grid;gap:10px;margin:14px 0}
+.bar{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr) 6.5em;gap:12px;align-items:center;font-size:15px}
+.track{display:flex;height:22px;background:var(--lane2);border-radius:6px;overflow:hidden}
+.track span{display:block;height:100%}
+.z{background:var(--muted)}.sy{background:var(--brand)}.ru{background:var(--know)}
+.val{white-space:nowrap;font-weight:700;text-align:end}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-inline-end:6px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:10px}
+th,td{text-align:start;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:14px;color:var(--ink2)}
+dl{display:grid;grid-template-columns:minmax(0,12em) minmax(0,1fr);gap:8px 20px;margin:10px 0}
+dt{font-weight:700}dd{margin:0;color:var(--ink2)}
+footer{padding:28px max(5vw,16px);color:var(--muted);font-size:14px}
+@media(max-width:600px){.bar{grid-template-columns:minmax(0,1fr) 5.5em}.bar .track{grid-column:1/-1;grid-row:2}dl{grid-template-columns:1fr}dd{margin-bottom:8px}table{font-size:13px}th,td{padding:6px 4px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;font-weight:700;color:var(--ink2)}}
+</style>
+</head>
+<body>
+
+<header class="top band">
+<div class="wrap">
+<h1>De la donnée médicale validée au résumé clair pour le patient</h1>
+<p>docTHub assemble deux sources de données : des connaissances médicales relues par un médecin, et les réponses du patient contrôlées à l'entrée. Un moteur de règles les confronte, traite toujours l'urgence en premier, puis produit un résumé lisible et oriente vers le bon médecin.</p>
+<span class="note">Les contenus médicaux actuels sont des exemples de développement, non validés cliniquement. Ce qui est déjà construit est marqué « réalisé », le reste « prévu ».</span>
+<div class="figs">
+<div><b>33</b><span>tables de données structurées</span></div>
+<div><b>3</b><span>langues : français, anglais, arabe</span></div>
+<div><b>73</b><span>tests automatisés (50 serveur, 23 interface)</span></div>
+<div><b>5</b><span>parcours testés dans un vrai navigateur</span></div>
+</div>
+</div>
+</header>
+
+<nav class="scroll" aria-label="Sections">
+<a href="#parcours">Parcours</a><a href="#acteurs">Acteurs</a><a href="#collecte">Collecte</a><a href="#structure">Structure</a><a href="#consultation">Consultation</a><a href="#moteur">Moteur</a><a href="#resume">Résumé</a><a href="#analytique">Analytique</a><a href="#garde-fous">Garde-fous</a><a href="#avancement">Avancement</a><a href="#lexique">Lexique</a>
+</nav>
+
+<section class="band" id="parcours"><div class="wrap">
+<h2>Le parcours de la donnée, comme un plan de métro</h2>
+<p class="lead">Deux lignes se rejoignent au moteur : la ligne bleue apporte ce qui est vrai en médecine, la ligne cyan ce que vit le patient. Après le moteur, elles avancent ensemble jusqu'au résumé et au médecin.</p>
+<figure>
+<div class="dia"><svg viewBox="0 0 1000 380" role="img" aria-label="Plan du parcours : sources officielles et réponses du patient convergent vers le moteur d'orientation, qui produit un résumé et oriente vers un médecin, avec une branche urgence et une boucle d'amélioration prévue">
+<path d="M930 166V44H400V88" fill="none" stroke="var(--muted)" stroke-width="3" stroke-dasharray="7 6"/>
+<text x="665" y="32" text-anchor="middle" class="s">Suivi après consultation → analyse → amélioration des règles (prévu)</text>
+<path d="M60 100H460L540 180H940" fill="none" stroke="var(--know)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M60 280H460L540 200H940" fill="none" stroke="var(--brand)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M560 214L620 274H690" fill="none" stroke="var(--red)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="70" cy="100" r="10" fill="var(--bg)" stroke="var(--know)" stroke-width="4"/>
+<circle cx="270" cy="100" r="10" fill="var(--bg)" stroke="var(--know)" stroke-width="4" stroke-dasharray="4 3"/>
+<circle cx="400" cy="100" r="10" fill="var(--bg)" stroke="var(--know)" stroke-width="4"/>
+<circle cx="70" cy="280" r="10" fill="var(--bg)" stroke="var(--brand)" stroke-width="4"/>
+<circle cx="250" cy="280" r="10" fill="var(--bg)" stroke="var(--brand)" stroke-width="4"/>
+<circle cx="415" cy="280" r="10" fill="var(--bg)" stroke="var(--brand)" stroke-width="4"/>
+<circle cx="690" cy="274" r="10" fill="var(--bg)" stroke="var(--red)" stroke-width="4"/>
+<rect x="548" y="166" width="24" height="48" rx="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
+<rect x="768" y="166" width="24" height="48" rx="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
+<rect x="918" y="166" width="24" height="48" rx="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="3"/>
+<text x="58" y="132">Sources officielles</text><text x="58" y="150" class="s">OMS · HAS · MedlinePlus</text>
+<text x="270" y="132" text-anchor="middle">Traçabilité (prévu)</text><text x="270" y="150" text-anchor="middle" class="s">source, licence</text>
+<text x="400" y="132" text-anchor="middle">Relecture médecin</text><text x="400" y="150" text-anchor="middle" class="s">approuvé ou rejeté</text>
+<text x="58" y="312">Zones du corps</text><text x="58" y="330" class="s">schéma face / dos</text>
+<text x="250" y="312" text-anchor="middle">Questionnaire adaptatif</text><text x="250" y="330" text-anchor="middle" class="s">questions selon réponses</text>
+<text x="415" y="312" text-anchor="middle">Contrôle des réponses</text><text x="415" y="330" text-anchor="middle" class="s">type, plage, cohérence</text>
+<text x="580" y="140" class="h">Moteur d'orientation</text><text x="580" y="158" class="s">urgence d'abord, puis scores</text>
+<text x="780" y="240" text-anchor="middle">Résumé clair</text><text x="780" y="258" text-anchor="middle" class="s">FR · EN · AR</text>
+<text x="930" y="240" text-anchor="middle">Médecin proche</text><text x="930" y="258" text-anchor="middle" class="s">vérifié, filtré</text>
+<text x="690" y="306" text-anchor="middle" style="fill:var(--red)">Alerte urgence</text><text x="690" y="324" text-anchor="middle" class="s">numéro d'urgence du pays</text>
+</svg></div>
+<div class="legend"><span><i style="border-color:var(--know)"></i>Connaissances validées</span><span><i style="border-color:var(--brand)"></i>Données du patient</span><span><i style="border-color:var(--red)"></i>Sortie urgence (interrompt tout)</span><span><i class="d"></i>Prévu, pas encore construit</span></div>
+<figcaption><b>À retenir :</b> le patient ne reçoit jamais une réponse qui ne s'appuie pas sur une connaissance relue par un médecin, et un signe d'alerte court-circuite tout le reste du parcours.</figcaption>
+</figure>
+</div></section>
+
+<section class="band" id="acteurs"><div class="wrap">
+<h2>Qui fait quoi (diagramme de cas d'utilisation UML)</h2>
+<p class="lead">Quatre acteurs interagissent avec la plateforme. Le médecin relecteur est le garant de la validité : rien de médical n'est utilisé en production sans son accord.</p>
+<figure>
+<div class="dia"><svg viewBox="0 0 1000 430" role="img" aria-label="Cas d'utilisation : le patient renseigne ses symptômes, reçoit une orientation et trouve un médecin ; l'administrateur gère le catalogue et vérifie les médecins ; le médecin relecteur approuve les règles ; une source officielle alimente l'import prévu">
+<rect x="210" y="16" width="590" height="400" rx="16" fill="none" stroke="var(--line)" stroke-width="2"/>
+<text x="230" y="44" class="h">Plateforme docTHub</text>
+<g class="ln"><line x1="110" y1="140" x2="262" y2="95"/><line x1="110" y1="140" x2="262" y2="165"/><line x1="110" y1="140" x2="262" y2="235"/><line x1="110" y1="140" x2="262" y2="305"/><line x1="110" y1="140" x2="262" y2="375"/>
+<line x1="890" y1="110" x2="738" y2="95"/><line x1="890" y1="110" x2="738" y2="165"/><line x1="890" y1="110" x2="738" y2="235"/><line x1="890" y1="275" x2="738" y2="305"/></g>
+<line x1="860" y1="375" x2="738" y2="375" class="ln r"/>
+<g fill="none" stroke="var(--ink)" stroke-width="2"><circle cx="90" cy="96" r="12"/><path d="M90 108V145M70 122H110M90 145L76 172M90 145L104 172"/><circle cx="910" cy="66" r="12"/><path d="M910 78V115M890 92H930M910 115L896 142M910 115L924 142"/><circle cx="910" cy="231" r="12"/><path d="M910 243V280M890 257H930M910 280L896 307M910 280L924 307"/></g>
+<text x="90" y="196" text-anchor="middle">Patient</text>
+<text x="910" y="166" text-anchor="middle">Administrateur</text>
+<text x="910" y="330" text-anchor="middle">Médecin relecteur</text>
+<rect x="862" y="352" width="128" height="50" rx="8" class="box plan"/><text x="926" y="373" text-anchor="middle" class="s">système externe</text><text x="926" y="392" text-anchor="middle">Source officielle</text>
+<g class="box"><ellipse cx="382" cy="95" rx="120" ry="26"/><ellipse cx="382" cy="165" rx="120" ry="26"/><ellipse cx="382" cy="235" rx="120" ry="26"/><ellipse cx="382" cy="305" rx="120" ry="26"/><ellipse cx="382" cy="375" rx="120" ry="26"/>
+<ellipse cx="618" cy="95" rx="120" ry="26"/><ellipse cx="618" cy="165" rx="120" ry="26"/><ellipse cx="618" cy="235" rx="120" ry="26"/><ellipse cx="618" cy="305" rx="120" ry="26"/></g>
+<ellipse cx="618" cy="375" rx="120" ry="26" class="box plan"/>
+<g text-anchor="middle"><text x="382" y="100">Indiquer ses zones de douleur</text><text x="382" y="170">Répondre au questionnaire</text><text x="382" y="240">Recevoir orientation + résumé</text><text x="382" y="310">Trouver un médecin proche</text><text x="382" y="380">Favoris, historique, export</text>
+<text x="618" y="100">Gérer le catalogue médical</text><text x="618" y="170">Vérifier les médecins</text><text x="618" y="240">Consulter les indicateurs</text><text x="618" y="310">Relire et approuver</text><text x="618" y="380">Importer des connaissances</text></g>
+</svg></div>
+<figcaption><b>Lecture :</b> chaque ovale est une action que l'acteur peut faire ; un trait relie l'acteur à ses actions. L'ovale en pointillé (import automatique depuis une source officielle) est prévu ; aujourd'hui l'administrateur saisit les connaissances à la main dans l'espace d'administration.</figcaption>
+</figure>
+</div></section>
+
+<section class="band" id="collecte"><div class="wrap">
+<h2>Collecter une connaissance valide (diagramme d'activité UML)</h2>
+<p class="lead">Une donnée médicale n'est « valide » que si elle a une source, une licence compatible, un relecteur nommé et une version. Chaque bande horizontale est un responsable ; la donnée descend d'une bande à l'autre.</p>
+<figure>
+<div class="dia"><svg viewBox="0 0 1000 370" role="img" aria-label="Activité : publication officielle, collecte avec traçabilité, structuration en brouillon, relecture médicale, puis publication versionnée si approuvé ou retour en correction sinon">
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<rect x="0" y="10" width="1000" height="110" class="l1"/><rect x="0" y="120" width="1000" height="130" class="l2"/><rect x="0" y="250" width="1000" height="110" class="l1"/>
+<text x="16" y="70" class="lane-t">Source officielle</text><text x="16" y="190" class="lane-t">Système docTHub</text><text x="16" y="310" class="lane-t">Médecin relecteur</text>
+<g class="ln" marker-end="url(#a1)"><path d="M290 65H390V158"/><path d="M465 185H493"/><path d="M570 212V276"/><path d="M645 305H702"/><path d="M796 305H910V214"/><path d="M750 275V240H610V214"/></g>
+<rect x="140" y="38" width="150" height="54" rx="10" class="box"/><text x="215" y="61" text-anchor="middle">Publication officielle</text><text x="215" y="80" text-anchor="middle" class="s">OMS, HAS, MedlinePlus</text>
+<rect x="315" y="158" width="150" height="54" rx="10" class="box plan"/><text x="390" y="181" text-anchor="middle">Collecte + traçabilité</text><text x="390" y="200" text-anchor="middle" class="s">empreinte, source, licence</text>
+<rect x="495" y="158" width="150" height="54" rx="10" class="box"/><text x="570" y="181" text-anchor="middle">Mise en forme</text><text x="570" y="200" text-anchor="middle" class="s">brouillon : règles, conseils</text>
+<rect x="495" y="278" width="150" height="54" rx="10" class="box"/><text x="570" y="301" text-anchor="middle">Relecture médicale</text><text x="570" y="320" text-anchor="middle" class="s">source vérifiée, nom signé</text>
+<path d="M750 275L796 305L750 335L704 305Z" class="box"/><text x="750" y="310" text-anchor="middle" style="font-size:12px">Approuvé ?</text>
+<rect x="835" y="158" width="150" height="54" rx="10" class="box"/><text x="910" y="181" text-anchor="middle">Publication</text><text x="910" y="200" text-anchor="middle" class="s">versionnée, utilisée</text>
+<text x="850" y="297" text-anchor="middle" class="s lbl">oui</text>
+<text x="680" y="234" text-anchor="middle" class="s lbl">non : à corriger</text>
+</svg></div>
+<figcaption><b>Ce qui existe :</b> mise en forme par l'administrateur, statuts brouillon / en relecture / approuvé / rejeté / retiré, nom du relecteur obligatoire pour approuver, numéro de version qui augmente à chaque modification (et renvoie en relecture). <b>Prévu :</b> collecte automatique avec empreinte numérique du document source, pour détecter quand une recommandation officielle change.</figcaption>
+</figure>
+<div class="cols">
+<div class="card"><h3>D'où viennent les connaissances</h3><p>Classification internationale des maladies de l'OMS (CIM-11, accès gratuit par API) pour nommer les maladies de façon standard ; recommandations publiques (HAS, NICE, OMS) et contenus grand public (MedlinePlus) pour les conseils. La licence de chaque source est vérifiée avant toute réutilisation.</p></div>
+<div class="card"><h3>Ce qu'on enregistre avec chaque fait</h3><p>Le nom de la source, son adresse, sa licence, la date de collecte, une empreinte numérique du document (si le document change, l'empreinte change), le nom du médecin relecteur, la date d'approbation et la version.</p></div>
+</div>
+</div></section>
+
+<section class="band" id="structure"><div class="wrap">
+<h2>Comment les symptômes et recommandations sont structurés (diagramme de classes UML)</h2>
+<p class="lead">Rien n'est stocké en texte libre : chaque élément est une fiche avec un code stable, des traductions et un statut. Les liens entre fiches portent le raisonnement médical.</p>
+<figure>
+<div class="dia wide"><svg viewBox="0 0 1000 540" role="img" aria-label="Classes : une question propose des réponses, une réponse signale un symptôme, un symptôme évoque des affections, une règle teste une réponse et une zone pour suggérer une affection et conseiller une recommandation, une affection relève d'une spécialité, un document source justifie les recommandations">
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="none" stroke="currentColor" stroke-width="1.6"/></marker></defs>
+<g class="ln" marker-end="url(#a2)"><path d="M280 79H368"/><path d="M630 79H718"/><path d="M150 138V213"/><path d="M850 138V213"/><path d="M370 274H282"/><path d="M630 274H718"/><path d="M500 215V140"/><path d="M500 333V403"/><path d="M850 333V403"/></g>
+<path d="M280 464H368" class="ln r" marker-end="url(#a2)"/>
+<g class="s lbl"><text x="325" y="70" text-anchor="middle">propose</text><text x="675" y="70" text-anchor="middle">signale</text><text x="158" y="180">concerne</text><text x="858" y="180">évoque (poids)</text><text x="325" y="265" text-anchor="middle">si zone</text><text x="675" y="265" text-anchor="middle">suggère</text><text x="508" y="180">teste la réponse</text><text x="508" y="372">conseille</text><text x="858" y="372">relève de</text><text x="325" y="455" text-anchor="middle">justifie</text></g>
+<g class="s"><text x="286" y="96">1</text><text x="356" y="96">*</text><text x="636" y="96">*</text><text x="690" y="96">0..1</text><text x="136" y="154">*</text><text x="122" y="208">0..1</text><text x="836" y="154">*</text><text x="836" y="208">*</text></g>
+<rect x="20" y="20" width="260" height="118" rx="10" class="box"/><path d="M30 20H270A10 10 0 0 1 280 30V54H20V30A10 10 0 0 1 30 20Z" class="hd"/><text x="150" y="43" text-anchor="middle" class="h">Question</text><text x="34" y="78" class="s">texte traduit (FR / EN / AR)</text><text x="34" y="100" class="s">type : choix, échelle, oui / non</text><text x="34" y="122" class="s">s'affiche si… (condition)</text>
+<rect x="370" y="20" width="260" height="118" rx="10" class="box"/><path d="M380 20H620A10 10 0 0 1 630 30V54H370V30A10 10 0 0 1 380 20Z" class="hd"/><text x="500" y="43" text-anchor="middle" class="h">Réponse possible</text><text x="384" y="78" class="s">code stable (ex. « toux »)</text><text x="384" y="100" class="s">libellé traduit</text><text x="384" y="122" class="s">lien vers un symptôme</text>
+<rect x="720" y="20" width="260" height="118" rx="10" class="box"/><path d="M730 20H970A10 10 0 0 1 980 30V54H720V30A10 10 0 0 1 730 20Z" class="hd"/><text x="850" y="43" text-anchor="middle" class="h">Symptôme</text><text x="734" y="78" class="s">code, nom traduit</text><text x="734" y="100" class="s">ex. essoufflement, fièvre</text><text x="734" y="122" class="s">publié / archivé</text>
+<rect x="20" y="215" width="260" height="118" rx="10" class="box"/><path d="M30 215H270A10 10 0 0 1 280 225V249H20V225A10 10 0 0 1 30 215Z" class="hd"/><text x="150" y="238" text-anchor="middle" class="h">Partie du corps</text><text x="34" y="273" class="s">code (ex. « poitrine »)</text><text x="34" y="295" class="s">vue : face / dos</text><text x="34" y="317" class="s">nom traduit</text>
+<rect x="370" y="215" width="260" height="118" rx="10" class="box" style="stroke:var(--brand);stroke-width:2.5"/><path d="M380 215H620A10 10 0 0 1 630 225V249H370V225A10 10 0 0 1 380 215Z" class="hd"/><text x="500" y="238" text-anchor="middle" class="h">Règle d'orientation</text><text x="384" y="273" class="s">si réponse = valeur attendue</text><text x="384" y="295" class="s">priorité · type : urgence, affection…</text><text x="384" y="317" class="s">source · version · relecture</text>
+<rect x="720" y="215" width="260" height="118" rx="10" class="box"/><path d="M730 215H970A10 10 0 0 1 980 225V249H720V225A10 10 0 0 1 730 215Z" class="hd"/><text x="850" y="238" text-anchor="middle" class="h">Affection possible</text><text x="734" y="273" class="s">nom, description traduits</text><text x="734" y="295" class="s">gravité : faible → élevée</text><text x="734" y="317" class="s">statut de relecture, source</text>
+<rect x="20" y="405" width="260" height="118" rx="10" class="box plan"/><text x="150" y="428" text-anchor="middle" class="h">Document source (prévu)</text><line x1="20" y1="439" x2="280" y2="439" stroke="var(--line)" stroke-width="1.5"/><text x="34" y="463" class="s">adresse, licence</text><text x="34" y="485" class="s">date de collecte</text><text x="34" y="507" class="s">empreinte numérique</text>
+<rect x="370" y="405" width="260" height="118" rx="10" class="box"/><path d="M380 405H620A10 10 0 0 1 630 415V439H370V415A10 10 0 0 1 380 405Z" class="hd"/><text x="500" y="428" text-anchor="middle" class="h">Recommandation</text><text x="384" y="463" class="s">conseil traduit</text><text x="384" y="485" class="s">type : quand consulter, auto-soins</text><text x="384" y="507" class="s">relu par (nom) · version</text>
+<rect x="720" y="405" width="260" height="118" rx="10" class="box"/><path d="M730 405H970A10 10 0 0 1 980 415V439H720V415A10 10 0 0 1 730 405Z" class="hd"/><text x="850" y="428" text-anchor="middle" class="h">Spécialité</text><text x="734" y="463" class="s">code, nom traduit</text><text x="734" y="485" class="s">ex. cardiologie</text><text x="734" y="507" class="s">reliée aux médecins</text>
+</svg></div>
+<figcaption><b>Lecture :</b> chaque boîte est un type de fiche dans la base de données ; une flèche est un lien (« 1 » / « * » = un / plusieurs). La <b>règle d'orientation</b> est le cœur : elle dit « si le patient a mal à tel endroit et répond telle chose, alors suggérer telle affection et tel conseil ». Une affection est aussi reliée directement aux parties du corps et aux symptômes, avec un poids.</figcaption>
+</figure>
+<h3>Exemple réel d'une règle stockée</h3>
+<pre><code>règle  em-chest-cardiac   type : URGENCE   priorité : 100
+si     zone = poitrine
+et     réponse à « En plus de la douleur, avez-vous… » ∈ { essoufflement, sueurs froides, douleur vers le bras ou la mâchoire }
+alors  interrompre et afficher le numéro d'urgence du pays
+source : signes d'alerte publics (exemple, à faire relire)   version : 1   statut : brouillon</code></pre>
+</div></section>
+
+<section class="band" id="consultation"><div class="wrap">
+<h2>Une consultation, étape par étape (diagramme de séquence UML)</h2>
+<p class="lead">Chaque colonne est un composant du logiciel ; on lit les messages de haut en bas, dans l'ordre où ils se produisent pendant que le patient utilise l'application.</p>
+<figure>
+<div class="dia wide"><svg viewBox="0 0 1000 700" role="img" aria-label="Séquence : le patient choisit ses zones, l'application crée une évaluation, une boucle de questions est contrôlée par l'API et le moteur vérifie l'urgence à chaque réponse ; si urgence, écran d'urgence ; sinon évaluation complète, résultats enregistrés et affichés">
+<defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 5"><line x1="90" y1="60" x2="90" y2="690"/><line x1="270" y1="60" x2="270" y2="690"/><line x1="460" y1="60" x2="460" y2="690"/><line x1="660" y1="60" x2="660" y2="690"/><line x1="870" y1="60" x2="870" y2="690"/></g>
+<g class="box"><rect x="25" y="16" width="130" height="44" rx="8"/><rect x="195" y="16" width="150" height="44" rx="8"/><rect x="385" y="16" width="150" height="44" rx="8"/><rect x="580" y="16" width="160" height="44" rx="8" style="stroke:var(--brand);stroke-width:2.5"/><rect x="795" y="16" width="150" height="44" rx="8"/></g>
+<g text-anchor="middle" class="h"><text x="90" y="43">Patient</text><text x="270" y="43">Application web</text><text x="460" y="43">API docTHub</text><text x="660" y="43">Moteur</text><text x="870" y="43">Base de données</text></g>
+<rect x="40" y="225" width="930" height="220" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/><path d="M40 225H268V241L256 251H40Z" fill="var(--lane2)" stroke="var(--muted)" stroke-width="1.5"/><text x="50" y="243" class="s" style="font-weight:700">boucle : pour chaque question</text>
+<rect x="40" y="462" width="930" height="226" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5"/><path d="M40 462H150V478L138 488H40Z" fill="var(--lane2)" stroke="var(--muted)" stroke-width="1.5"/><text x="50" y="480" class="s" style="font-weight:700">alternative</text>
+<line x1="40" y1="548" x2="970" y2="548" stroke="var(--muted)" stroke-dasharray="6 5"/>
+<text x="160" y="480" class="s lbl" style="fill:var(--red);font-weight:700">[signe d'urgence détecté]</text>
+<text x="50" y="566" class="s lbl" style="font-weight:700">[sinon]</text>
+<g class="ln" marker-end="url(#a3)"><path d="M90 100H268"/><path d="M270 135H458"/><path d="M460 170H868"/><path d="M270 270H458"/><path d="M460 300H868"/><path d="M90 335H268"/><path d="M270 365H458"/><path d="M460 395H658"/><path d="M270 525H92" style="stroke:var(--red)"/><path d="M270 585H458"/><path d="M460 615H658"/><path d="M660 645H868"/><path d="M270 678H92"/></g>
+<g class="ln r" marker-end="url(#a3)"><path d="M460 205H272"/><path d="M660 425H462"/><path d="M460 660H272"/></g>
+<g class="s lbl" text-anchor="middle"><text x="180" y="93">choisit « poitrine »</text><text x="365" y="128">POST /assessments</text><text x="365" y="198">identifiant anonyme</text><text x="365" y="263">GET /questions</text><text x="180" y="328">répond « toux »</text><text x="365" y="358">POST /answers</text><text x="560" y="388">signe d'urgence ?</text><text x="560" y="418">oui / non</text><text x="365" y="578">POST /evaluate</text><text x="560" y="608">règles + scores</text><text x="365" y="653">résumé + spécialité</text><text x="180" y="671">affiche le résultat</text></g>
+<g class="s lbl"><text x="472" y="163">enregistre l'évaluation</text><text x="472" y="293">questions visibles selon les réponses déjà données</text><text x="672" y="638">enregistre les résultats</text></g>
+<text x="180" y="518" text-anchor="middle" class="s lbl" style="fill:var(--red);font-weight:700">écran d'urgence</text>
+</svg></div>
+<figcaption><b>Points clés :</b> 1) la réponse est vérifiée par le serveur (type, valeurs possibles, plage) avant d'être enregistrée ; 2) <b>à chaque réponse</b>, le moteur regarde s'il y a un signe d'urgence : si oui, le questionnaire s'arrête immédiatement ; 3) l'évaluation est identifiée par un code aléatoire, ce qui permet de l'utiliser sans créer de compte. Tout ce diagramme est <span class="chip ok">réalisé</span> et testé.</figcaption>
+</figure>
+</div></section>
+
+<section class="band" id="moteur"><div class="wrap">
+<h2>Le moteur de décision, sur un cas réel de démonstration</h2>
+<p class="lead">Patient virtuel : douleur à la poitrine, toux, douleur qui apparaît à l'effort, intensité 5/10. Aucun signe d'urgence. Voici les scores calculés par le moteur lors de notre test dans le navigateur.</p>
+<div class="cols">
+<div>
+<h3>Affections possibles : d'où vient chaque point</h3>
+<p class="legend"><span><span class="sw z"></span>zone du corps × 1</span><span><span class="sw sy"></span>symptôme signalé × 2</span><span><span class="sw ru"></span>règle validée × 3</span></p>
+<div class="bars" id="bars"></div>
+<p style="font-size:14px;color:var(--muted)">Seuils : 6 points ou plus = correspondance forte, 3 à 5 = possible, moins de 3 = faible. Un symptôme seul (ex. fièvre) ne peut pas faire apparaître une affection d'une autre partie du corps.</p>
+</div>
+<div>
+<h3>Ordre de décision</h3>
+<ol>
+<li><b>Urgence d'abord.</b> Si une règle d'urgence correspond, seul l'écran d'urgence est montré, avec le numéro du pays du patient.</li>
+<li><b>Affections possibles.</b> Scores ci-contre, cinq au maximum, présentées comme des pistes et jamais comme un diagnostic.</li>
+<li><b>Spécialité conseillée.</b> Somme des scores par spécialité : ici pneumologie (10), puis cardiologie (7).</li>
+<li><b>Conseils.</b> Recommandations liées aux affections retenues, avec leur source et leur statut de relecture.</li>
+<li><b>Contrôle de validité.</b> En production, seules les règles et recommandations approuvées par un médecin sont utilisées.</li>
+</ol>
+</div>
+</div>
+</div></section>
+
+<section class="band" id="resume"><div class="wrap">
+<h2>Générer le résumé « humain »</h2>
+<p class="lead">Le résumé est produit à partir des données structurées, jamais inventé. Deux voies sont prévues ; la première, sans intelligence artificielle, est la base et le filet de sécurité.</p>
+<figure>
+<div class="dia"><svg viewBox="0 0 1000 250" role="img" aria-label="Résumé : réponses codées puis résultats du moteur puis fiche structurée ; voie A modèles de phrases vers résumé lisible ; voie B intelligence artificielle optionnelle puis contrôle de sécurité vers résumé lisible, avec repli sur la voie A en cas d'échec">
+<defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g class="ln" marker-end="url(#a4)"><path d="M180 125H208"/><path d="M370 125H398"/><path d="M560 125H580V60H598"/><path d="M580 125V190H598"/><path d="M760 60H798"/><path d="M760 190H798"/><path d="M880 163V89"/></g>
+<path d="M820 163L726 89" class="ln r" marker-end="url(#a4)" style="stroke:var(--red)"/>
+<rect x="20" y="98" width="160" height="54" rx="10" class="box"/><text x="100" y="121" text-anchor="middle">Réponses codées</text><text x="100" y="140" text-anchor="middle" class="s">poitrine · toux · effort</text>
+<rect x="210" y="98" width="160" height="54" rx="10" class="box"/><text x="290" y="121" text-anchor="middle">Résultats du moteur</text><text x="290" y="140" text-anchor="middle" class="s">pistes, spécialité, conseils</text>
+<rect x="400" y="98" width="160" height="54" rx="10" class="box"/><text x="480" y="121" text-anchor="middle">Fiche structurée</text><text x="480" y="140" text-anchor="middle" class="s">rubriques fixes</text>
+<rect x="600" y="33" width="160" height="54" rx="10" class="box plan"/><text x="680" y="56" text-anchor="middle">A · Modèles de phrases</text><text x="680" y="75" text-anchor="middle" class="s">FR · EN · AR, sans ajout</text>
+<rect x="600" y="163" width="160" height="54" rx="10" class="box plan"/><text x="680" y="186" text-anchor="middle">B · IA optionnelle</text><text x="680" y="205" text-anchor="middle" class="s">reformule, cite la source</text>
+<rect x="800" y="163" width="160" height="54" rx="10" class="box plan"/><text x="880" y="186" text-anchor="middle">Contrôle sécurité</text><text x="880" y="205" text-anchor="middle" class="s">rien d'inventé</text>
+<rect x="800" y="33" width="160" height="54" rx="10" class="box" style="stroke:var(--brand);stroke-width:2.5"/><text x="880" y="56" text-anchor="middle" class="h">Résumé lisible</text><text x="880" y="75" text-anchor="middle" class="s">patient et médecin</text>
+<text x="888" y="132" class="s lbl">validé</text>
+<text x="775" y="150" text-anchor="end" class="s lbl" style="fill:var(--red)">sinon : repli sur A</text>
+</svg></div>
+<figcaption><b>Aujourd'hui :</b> la page de résultats affiche déjà une fiche structurée (zones, réponses, pistes, spécialité, conseils sourcés) <span class="chip ok">réalisé</span>. <b>Prochaine étape :</b> la voie A, un texte suivi rédigé par des modèles de phrases traduits <span class="chip pl">prévu</span>. <b>Plus tard :</b> la voie B avec une IA qui ne fait que reformuler, contrôlée par un programme qui refuse tout nom de maladie absent des résultats, tout médicament et toute phrase sans source <span class="chip pl">prévu</span>.</figcaption>
+</figure>
+<div class="cols">
+<div class="card"><h3>Ce que le système reçoit</h3>
+<pre><code>zones       : [poitrine]
+intensité   : 5 / 10
+durée       : 1 à 7 jours
+début       : progressif
+associé     : [toux]
+déclencheur : à l'effort
+urgence     : non
+spécialité  : pneumologie (cardiologie aussi)</code></pre></div>
+<div class="card"><h3>Ce que le patient lit (rendu prévu, voie A)</h3>
+<p class="quote">Vous signalez une douleur à la poitrine, d'intensité 5 sur 10, depuis 1 à 7 jours, apparue progressivement. Elle s'accompagne d'une toux et apparaît à l'effort. Aucun signe d'urgence n'a été détecté dans vos réponses. Spécialité conseillée : pneumologie ; la cardiologie est aussi pertinente. Ceci est une orientation, pas un diagnostic.</p></div>
+</div>
+</div></section>
+
+<section class="band" id="analytique"><div class="wrap">
+<h2>L'analyse de données : une boucle d'amélioration</h2>
+<p class="lead">Pour savoir si l'orientation est juste, il faut comparer ce que docTHub a conseillé à ce que le médecin a réellement conclu. Cette « vérité terrain » nourrit les indicateurs, qui proposent des ajustements de règles, toujours validés par un médecin.</p>
+<figure>
+<div class="dia"><svg viewBox="0 0 1000 300" role="img" aria-label="Boucle : évaluation, suivi à sept jours, pseudonymisation, entrepôt analytique, indicateurs, validation médecin des ajustements, puis retour à l'évaluation">
+<path d="M200 60H800A90 90 0 0 1 800 240H200A90 90 0 0 1 200 60Z" fill="none" stroke="var(--brand)" stroke-width="8"/>
+<g fill="var(--brand)"><path d="M352 50L370 60L352 70Z"/><path d="M652 50L670 60L652 70Z"/><path d="M368 230L350 240L368 250Z"/><path d="M668 230L650 240L668 250Z"/></g>
+<circle cx="200" cy="60" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4"/>
+<circle cx="500" cy="60" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4" stroke-dasharray="4 3"/>
+<circle cx="800" cy="60" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4" stroke-dasharray="4 3"/>
+<circle cx="800" cy="240" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4" stroke-dasharray="4 3"/>
+<circle cx="500" cy="240" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4"/>
+<circle cx="200" cy="240" r="12" fill="var(--bg)" stroke="var(--ink)" stroke-width="4"/>
+<text x="180" y="98">Évaluation</text><text x="500" y="98" text-anchor="middle">Suivi à 7 jours</text><text x="830" y="98" text-anchor="end">Pseudonymisation</text><text x="830" y="210" text-anchor="end">Entrepôt analytique</text><text x="500" y="210" text-anchor="middle">Indicateurs</text><text x="180" y="210">Validation médecin</text>
+<g class="s"><text x="180" y="116">réponses + résultats</text><text x="500" y="116" text-anchor="middle">« Qu'a dit le médecin ? »</text><text x="830" y="116" text-anchor="end">identité remplacée par un code</text><text x="830" y="192" text-anchor="end">données agrégées</text><text x="500" y="192" text-anchor="middle">concordance, urgences</text><text x="180" y="192">ajustement des règles</text></g>
+<text x="500" y="158" text-anchor="middle" class="h" style="fill:var(--muted);font-size:18px">amélioration continue</text>
+</svg></div>
+<figcaption>Cercles pleins : <span class="chip ok">réalisé</span> (évaluations enregistrées, tableau de bord administrateur avec premiers indicateurs, circuit de validation des règles). Cercles en pointillé : <span class="chip pl">prévu</span>. Aucune donnée n'entre dans l'analyse sans le consentement « données de santé » du patient, recueilli dès l'inscription.</figcaption>
+</figure>
+<table class="stack">
+<thead><tr><th>Indicateur</th><th>Ce qu'il mesure</th><th>Pourquoi c'est important</th><th>État</th></tr></thead>
+<tbody>
+<tr><td>Concordance d'orientation</td><td>Part des cas où la spécialité conseillée est celle que le patient a réellement consultée</td><td>Mesure directe de la justesse du produit</td><td><span class="chip pl">prévu</span></td></tr>
+<tr><td>Taux d'alertes d'urgence</td><td>Part des évaluations qui déclenchent l'écran d'urgence, par règle</td><td>Repère les règles trop sensibles ou pas assez</td><td><span class="chip part">partiel</span></td></tr>
+<tr><td>Spécialités les plus conseillées</td><td>Classement sur 30 jours</td><td>Montre où recruter des médecins partenaires</td><td><span class="chip ok">réalisé</span></td></tr>
+<tr><td>Taux de complétion</td><td>Part des questionnaires terminés</td><td>Repère les questions qui font abandonner</td><td><span class="chip pl">prévu</span></td></tr>
+<tr><td>Couverture validée</td><td>Part des règles et conseils approuvés par un médecin</td><td>Condition pour passer en production</td><td><span class="chip ok">réalisé</span></td></tr>
+</tbody></table>
+</div></section>
+
+<section class="band" id="garde-fous"><div class="wrap">
+<h2>Les garde-fous intégrés au code</h2>
+<table class="stack">
+<thead><tr><th>Risque</th><th>Protection dans le code</th><th>Vérifié par</th></tr></thead>
+<tbody>
+<tr><td>Rater une urgence</td><td>Règles d'urgence évaluées avant tout le reste et à chaque réponse ; elles restent actives même avant relecture</td><td>Tests automatisés + test navigateur</td></tr>
+<tr><td>Présenter une piste comme un diagnostic</td><td>Mots « explications possibles » et mention « pas un diagnostic » sur chaque résultat</td><td>Test de l'interface</td></tr>
+<tr><td>Utiliser un contenu non relu</td><td>Interrupteur de production : seul le contenu approuvé est utilisé ; sinon bandeau « contenu non relu »</td><td>Tests automatisés</td></tr>
+<tr><td>Invention par une IA</td><td>Interface prévue : l'IA ne peut proposer que des codes existants, un programme vérifie sa sortie</td><td>Test unitaire du filtre</td></tr>
+<tr><td>Fuite de données personnelles</td><td>Date de naissance chiffrée, export et suppression du compte, journal d'audit des actions admin</td><td>Tests automatisés</td></tr>
+<tr><td>Faux médecin</td><td>Un médecin réel n'est « vérifié » qu'après approbation d'un justificatif ; profils de démonstration signalés</td><td>Tests automatisés</td></tr>
+</tbody></table>
+</div></section>
+
+<section class="band" id="avancement"><div class="wrap">
+<h2>État d'avancement</h2>
+<table class="stack">
+<thead><tr><th>Brique</th><th>État</th><th>Détail</th></tr></thead>
+<tbody>
+<tr><td>Structure des données (33 tables, 3 langues)</td><td><span class="chip ok">réalisé</span></td><td>Symptômes, règles, conseils, médecins, évaluations, traductions</td></tr>
+<tr><td>Questionnaire adaptatif et moteur de règles</td><td><span class="chip ok">réalisé</span></td><td>Urgence prioritaire, scores, spécialité, conseils sourcés</td></tr>
+<tr><td>Circuit de relecture médicale</td><td><span class="chip ok">réalisé</span></td><td>Statuts, version, nom du relecteur obligatoire</td></tr>
+<tr><td>Recherche de médecins</td><td><span class="chip ok">réalisé</span></td><td>Filtres, distance avec accord du patient, médecins vérifiés uniquement</td></tr>
+<tr><td>Contenu médical réel</td><td><span class="chip pl">prévu</span></td><td>Nécessite un médecin partenaire ; contenu actuel = exemples</td></tr>
+<tr><td>Collecte automatique avec traçabilité</td><td><span class="chip pl">prévu</span></td><td>Document source, licence, empreinte</td></tr>
+<tr><td>Résumé rédigé (voie A)</td><td><span class="chip pl">prévu</span></td><td>Prochaine étape conseillée</td></tr>
+<tr><td>Suivi à 7 jours et analyse</td><td><span class="chip pl">prévu</span></td><td>Vérité terrain, indicateurs de justesse</td></tr>
+<tr><td>Cadre réglementaire</td><td><span class="chip pl">prévu</span></td><td>Qualification dispositif médical, autorisations données de santé (CNDP au Maroc, RGPD en Europe)</td></tr>
+</tbody></table>
+</div></section>
+
+<section class="band" id="lexique"><div class="wrap">
+<h2>Lexique</h2>
+<dl>
+<dt>API</dt><dd>La porte d'entrée du serveur : l'application envoie une demande (ex. « enregistre cette réponse ») et reçoit une réponse vérifiée.</dd>
+<dt>Base de données</dt><dd>L'endroit où toutes les fiches sont rangées et reliées entre elles.</dd>
+<dt>Règle d'orientation</dt><dd>Une phrase « si… alors… » écrite et relue par un médecin, que le moteur applique automatiquement.</dd>
+<dt>UML</dt><dd>Langage de schémas standard des ingénieurs logiciels : acteurs, activités, structure des données, séquence des échanges.</dd>
+<dt>Empreinte numérique</dt><dd>Une signature calculée à partir d'un document : si une seule lettre change, la signature change.</dd>
+<dt>Pseudonymisation</dt><dd>Remplacer l'identité d'une personne par un code avant l'analyse, pour étudier les cas sans savoir qui ils concernent.</dd>
+<dt>Vérité terrain</dt><dd>Ce qui s'est réellement passé (l'avis du médecin), utilisé pour mesurer la justesse du système.</dd>
+<dt>IA (modèle de langage)</dt><dd>Un programme qui rédige du texte ; ici, il ne servirait qu'à reformuler, jamais à décider.</dd>
+</dl>
+</div></section>
+
+<footer><div class="wrap">docTHub — document de présentation technique. Les scores du chapitre « Moteur » proviennent d'une exécution réelle sur les données de démonstration du projet.</div></footer>
+
+<script>
+{
+const rows=[
+ {n:'Bronchite aiguë',z:1,s:6,r:3,lvl:'forte'},
+ {n:'Angine de poitrine',z:1,s:0,r:6,lvl:'forte'},
+ {n:'Reflux gastro-œsophagien',z:1,s:0,r:0,lvl:'faible'},
+ {n:'Douleur pariétale thoracique',z:1,s:0,r:0,lvl:'faible'}];
+const max=10;
+document.getElementById('bars').innerHTML=rows.map(o=>{const t=o.z+o.s+o.r;return `<div class="bar"><span>${o.n}</span><div class="track" role="img" aria-label="${o.n} : zone ${o.z}, symptôme ${o.s}, règle ${o.r}, total ${t}"><span class="z" style="width:${o.z/max*100}%"></span><span class="sy" style="width:${o.s/max*100}%"></span><span class="ru" style="width:${o.r/max*100}%"></span></div><span class="val">${t} · ${o.lvl}</span></div>`}).join('');
+const label=()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}};
+label();
+const mo=new MutationObserver(label);mo.observe(document.body,{childList:true,subtree:true});
+}
+</script>
+</body>
+</html>
