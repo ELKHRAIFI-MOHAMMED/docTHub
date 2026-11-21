@@ -13,7 +13,7 @@ International medical **orientation** and **doctor discovery** platform. Patient
 | `BACK/sahtek/` | Laravel 10 API — V2 under `/api/v1`, legacy V1 under `/api` |
 | `frontend/` | V2 web app — React 19, TypeScript, Vite, Redux Toolkit (RTK Query), Tailwind 4, i18next (EN/FR/AR + RTL) |
 | `front/sahtek/` | Legacy V1 React app (kept for reference) |
-| `docs/` | Requirements, architecture, database, API, roadmap, V1 migration, deployment |
+| `docs/` | Requirements, architecture, database, API, roadmap, V1 migration, deployment, [knowledge sources and licences](docs/sources.md) |
 | `LEARN.md` | Progress checklist, decisions and lessons learned |
 
 ## Quick start
@@ -34,3 +34,16 @@ Demo logins (development only): `admin@docthub.test` / `Admin12345`, `patient@do
 cd BACK/sahtek && php artisan test
 cd frontend && npm test
 ```
+
+## Knowledge pipeline (raw layer)
+
+External medical knowledge (WHO ICD-11, MedlinePlus) is downloaded **raw and untouched**, fingerprinted (SHA-256) and versioned. Nothing is downloaded until a person has confirmed the source licence in the admin: see [docs/sources.md](docs/sources.md).
+
+```bash
+cd BACK/sahtek
+php artisan db:seed --class=KnowledgeSourceSeeder          # registers icd11 + medlineplus (licence: unverified)
+php artisan knowledge:fetch icd11 --target=<ICD-11 code> --lang=en --lang=fr --lang=ar   # needs ICD_API_CLIENT_ID/SECRET in .env
+php artisan knowledge:fetch medlineplus --target="<search term>"
+```
+
+Raw files: `storage/app/raw/{source}/{sha256}.{json|xml}`. Imported content is never published or approved automatically.

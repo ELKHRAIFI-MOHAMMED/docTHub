@@ -188,20 +188,24 @@ export const RESOURCES: ResourceDef[] = [
 RESOURCES.push(
   {
     key: 'knowledge-sources', title: 'admin.res.knowledgeSources',
-    columns: [{ name: 'name', label: 'Name' }, { name: 'publisher', label: 'Publisher' }, { name: 'license', label: 'Licence' }, { name: 'is_active', label: 'Active' }],
+    columns: [{ name: 'name', label: 'Name' }, { name: 'code', label: 'Code' }, { name: 'license', label: 'Licence' }, { name: 'license_status', label: 'Licence status' }, { name: 'is_active', label: 'Active' }],
     fields: [
       { name: 'name', label: 'Name', type: 'text', required: true },
       { name: 'publisher', label: 'Publisher', type: 'text' },
       { name: 'base_url', label: 'Website', type: 'text' },
       { name: 'license', label: 'Licence (required before any reuse)', type: 'text', required: true },
       { name: 'license_url', label: 'Licence URL', type: 'text' },
+      { name: 'license_status', label: 'Licence status', type: 'select', options: ['unverified', 'confirmed', 'unclear'], hint: 'Set to "confirmed" only after reading the licence (docs/sources.md). knowledge:fetch refuses any other status.' },
+      { name: 'license_checked_at', label: 'Licence checked on', type: 'text', hint: 'YYYY-MM-DD (filled automatically when confirmed)' },
+      { name: 'code', label: 'Code (pipeline)', type: 'text', hint: 'icd11, medlineplus… used by knowledge:fetch' },
+      { name: 'attribution', label: 'Attribution to display', type: 'text' },
       { name: 'allowed_use', label: 'What we are allowed to do', type: 'textarea' },
       { name: 'is_active', label: 'Monitor this source daily', type: 'checkbox' },
     ],
   },
   {
     key: 'source-documents', title: 'admin.res.sourceDocuments',
-    columns: [{ name: 'title', label: 'Title' }, { name: 'status', label: 'Status' }, { name: 'last_checked_at', label: 'Last check' }, { name: 'content_hash', label: 'Fingerprint' }],
+    columns: [{ name: 'title', label: 'Title' }, { name: 'language', label: 'Lang' }, { name: 'status', label: 'Status' }, { name: 'last_checked_at', label: 'Last check' }, { name: 'content_hash', label: 'Fingerprint' }],
     actions: [{ label: 'admin.fetchNow', path: (id) => `/admin/source-documents/${id}/fetch` }],
     fields: [
       { name: 'knowledge_source_id', label: 'Source', type: 'relation', relation: 'knowledge-sources', required: true },

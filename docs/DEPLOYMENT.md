@@ -50,6 +50,7 @@ cd frontend && npm test && npm run typecheck && npm run build
    - `CORS_ALLOWED_ORIGINS=https://www.example.com`
    - `FILESYSTEM_DISK` / `DOCTHUB_PUBLIC_DISK` / `DOCTHUB_PRIVATE_DISK` (e.g. `s3` + a private bucket for documents)
    - Mail settings if notifications are enabled later.
+   - Knowledge pipeline (optional): `ICD_API_CLIENT_ID`, `ICD_API_CLIENT_SECRET` (WHO ICD API account), `ICD_API_RELEASE` (empty = latest), `MEDLINEPLUS_REQUESTS_PER_MINUTE` (≤ 85), `DOCTHUB_KNOWLEDGE_TIMEOUT`, `DOCTHUB_KNOWLEDGE_RETRIES`, `DOCTHUB_KNOWLEDGE_RAW_DISK`. Secrets only in `.env`, never in git.
 2. **Database**: `php artisan migrate --force` then `php artisan db:seed --force`. In production the seeder only loads reference data (languages, countries, cities, roles). Medical content is entered and **approved** by qualified reviewers in the admin.
 3. **First admin**: `php artisan tinker` → `$u = App\Models\User::create([...]); $u->assignRole('admin');`
 4. **Emergency numbers**: verify each country's number against an official source and tick *Emergency number checked* in Admin → Countries.
@@ -58,6 +59,11 @@ cd frontend && npm test && npm run typecheck && npm run build
 7. **Frontend**: `VITE_API_BASE_URL=https://api.example.com/api/v1 npm run build`, serve `frontend/dist` as a static site with SPA fallback to `index.html`.
 8. **HTTP**: HTTPS only, HSTS, and a Content-Security-Policy. The OpenStreetMap iframe needs `frame-src https://www.openstreetmap.org`.
 9. **Legal**: privacy policy, terms, data-processing register and a GDPR / local law (e.g. Morocco law 09-08) assessment before launch. The platform makes **no compliance claim**.
+
+## Knowledge pipeline
+1. `php artisan db:seed --class=KnowledgeSourceSeeder` (also run by `db:seed`; never overwrites an existing source).
+2. Read [sources.md](sources.md), then set each licence to *confirmed* in Admin → Knowledge sources (or leave it blocked).
+3. `php artisan knowledge:fetch icd11|medlineplus --target=… [--lang=…]`. Exit code 1 if any document failed; raw files in `storage/app/raw/`. Keep that directory on persistent storage and in backups.
 
 ## Migrating V1 data
 See `MIGRATION_FROM_V1.md` — `php artisan docthub:import-v1 --country=MA [--dry-run]`.

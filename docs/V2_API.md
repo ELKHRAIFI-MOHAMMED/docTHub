@@ -113,7 +113,7 @@ Resource-specific payloads:
 - `guidelines`: approving requires `reviewed_by_name`; editing content bumps `version` and sends it back to `in_review`.
 - `doctors`: `specialties: [{id, is_primary}]`, `language_ids[]`, `locations: [{country_id, city_id, address, latitude, longitude, ...}]`.
 
-Also `knowledge-sources` and `source-documents` (licence required on sources). `POST /admin/source-documents/{id}/fetch` downloads the document (public http(s) only, redirects re-checked), stores its fingerprint and returns `meta: {status, changed, sent_to_review}`.
+Also `knowledge-sources` (licence required; `code`, `license_status` = `unverified|confirmed|unclear`, `license_checked_at` filled when confirmed, `attribution`) and `source-documents`. `POST /admin/source-documents/{id}/fetch` (409 for documents of the raw pipeline, refreshed by `php artisan knowledge:fetch`) downloads the document (public http(s) only, redirects re-checked), stores its fingerprint and returns `meta: {status, changed, sent_to_review}`.
 
 Analytics:
 

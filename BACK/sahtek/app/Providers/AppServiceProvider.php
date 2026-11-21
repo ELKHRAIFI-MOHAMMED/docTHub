@@ -37,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
             'language' => Models\Language::class,
             'doctor' => Models\Doctor::class,
             'patient' => Models\Patient::class,
+            'knowledge_source' => Models\KnowledgeSource::class,
+            'source_document' => Models\SourceDocument::class,
         ]);
     }
 }

@@ -66,6 +66,17 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 - ⬜ Voie B (AI rewriting) — not started; interface and guard exist
 - ⬜ DNS-rebinding hardening of the fetcher (pin the resolved IP for the connection)
 
+### Data pipeline V2 — phase 1: raw layer and traceability (branch `feature/data-pipeline-v2`)
+- ✅ `knowledge_sources.code` + `license_status` (`unverified/confirmed/unclear`, set by a human) + `license_checked_at` + `attribution`; `KnowledgeSourceSeeder` registers `icd11` and `medlineplus` as `unverified`
+- ✅ `source_documents`: one row per fingerprint (`unique(url, language, content_hash)`), `superseded` status, `previous_document_id`, `raw_path`, `raw_format`, `raw_bytes`, `http_status`, `metadata`
+- ✅ `knowledge:fetch {source}`: interface `Knowledge\Contracts\SourceFetcher`, `IcdFetcher` (OAuth2 client credentials, `API-Version: v2`, `Accept-Language`), `MedlinePlusFetcher` (XML web service, en only); raw body stored untouched in `storage/app/raw/{source}/{sha}.{ext}`
+- ✅ Change of a known URL → new version, previous `superseded`, log "Source modifiée" + audit, approved linked items → `in_review`
+- ✅ `ResilientHttp`: timeouts, retries with exponential backoff (connection errors, 429, 5xx), `Retry-After`, per-source minimum interval, max body size
+- ✅ Old page monitor renamed `PageMonitor`; it no longer touches pipeline documents (409 on "fetch now", skipped by `docthub:sources:check`)
+- ✅ Tests: +14 backend (79 total), all HTTP simulated with `Http::fake` + `preventStrayRequests`
+- ⬜ Licences to be confirmed by the project owner (see `docs/sources.md`) — nothing has been downloaded for real
+- ⬜ DNS-rebinding hardening still open (fixed hosts in config for API sources)
+
 ### Phase 6 — Quality & deployment
 - ✅ Backend: 50 tests / 276 assertions (feature + unit) — auth, authorisation, validation, rules, emergency rules, discovery, admin, privacy
 - ✅ Frontend: 23 tests (components, forms, API integration with mocked fetch, RTL, i18n key parity, auth guards)
@@ -97,6 +108,9 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 | 15 | Outcomes are structured (choices, codes), never free text | Ground truth must be comparable and must not collect unintended personal data | Less nuance than a free comment |
 | 16 | Record-level export only for patients with active health-data consent; guests appear in aggregates only | Guests have not given an explicit consent | Smaller export sample |
 | 17 | A changed source never unpublishes content by itself; it sends approved items back to review | Humans decide; a page layout change must not silently remove advice | Reviewers must handle false positives (dynamic pages) |
+| 18 | Raw layer = one row per fingerprint, raw bytes on disk, licence gate in the database | Full history (what exactly was read, when), reproducible imports; a human confirms each licence | Disk grows with each version (content-addressed, so identical content is stored once) |
+| 19 | API sources hash the **raw bytes**; the page monitor keeps hashing **normalised text** | API JSON/XML is stable; HTML pages change cosmetically | Two fingerprint meanings in one table, distinguished by `raw_path` (set = raw bytes) |
+| 20 | MedlinePlus French/Arabic are "skipped", never translated; ICD-11 only uses WHO's own languages | ICD-11 terms exclude translations without WHO agreement; no silent machine translation | FR/AR coverage depends on publishers |
 | 14 | Pinned latest *known* majors (Vite 7, TS 5.9, Vitest 3, i18next 25) instead of the newest (Vite 8, TS 7, Vitest 5) | Avoid unverified breaking changes during the build | Upgrade later in a dedicated step |
 
 ---
@@ -130,6 +144,9 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 12. **`orWhere` inside `whereHas`/`whereDoesntHave`** must be wrapped in a nested `where()`, otherwise it escapes the relation constraint (caught in review of the follow-up query).
 13. **Fingerprinting web pages**: hashing raw HTML flags every cosmetic change. We hash normalised text (scripts/styles removed, whitespace collapsed); dynamic pages can still produce false "changed" alerts.
 10. **E2E waits**: waiting a fixed 500 ms after "Next" raced the API; wait for the heading to change instead.
+14. **MariaDB refuses to drop a unique index used by a foreign key** (`source_documents_source_url_unique` backed `knowledge_source_id`). Create the replacement index first, then drop.
+15. **`php artisan migrate --env=testing` without a `.env.testing` runs against `.env`** (the dev database). Tests get their database from `phpunit.xml`; never pass `--env=testing` by hand.
+16. **PHP arrow functions capture by value**: `fn () => array_shift($queue)` always shifts a fresh copy. Use `function () use (&$queue)` for sequences in fakes.
 
 ---
 

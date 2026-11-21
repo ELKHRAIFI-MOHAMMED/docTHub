@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\SourceDocument;
-use App\Services\Knowledge\SourceFetcher;
+use App\Services\Knowledge\PageMonitor;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
@@ -14,10 +14,12 @@ class CheckSources extends Command
 
     protected $description = 'Fetch knowledge source documents and detect changes';
 
-    public function handle(SourceFetcher $fetcher): int
+    public function handle(PageMonitor $fetcher): int
     {
         $documents = SourceDocument::query()
             ->whereHas('source', fn ($q) => $q->where('is_active', true))
+            // Documents of the raw pipeline (raw_path) are refreshed by knowledge:fetch, never re-fingerprinted here.
+            ->whereNull('raw_path')->where('status', '!=', 'superseded')
             ->when($this->option('document'), fn ($q, $id) => $q->whereKey($id))
             ->get();
 

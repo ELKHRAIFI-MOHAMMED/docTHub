@@ -2,9 +2,6 @@
 
 namespace App\Services\Knowledge;
 
-use App\Models\Disease;
-use App\Models\MedicalGuideline;
-use App\Models\OrientationRule;
 use App\Models\SourceDocument;
 use App\Services\AuditLogger;
 use Illuminate\Http\Client\ConnectionException;
@@ -13,14 +10,14 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Downloads a source document, fingerprints it (SHA-256 of its normalised text) and, when the fingerprint
+ * Page monitor (admin "fetch now" and docthub:sources:check). Downloads a web page, fingerprints it (SHA-256 of its normalised text) and, when the fingerprint
  * changes, sends every APPROVED item citing it back to medical review. Nothing is published automatically.
  */
-class SourceFetcher
+class PageMonitor
 {
     public const MAX_BYTES = 5_000_000;
 
-    public function __construct(private readonly AuditLogger $audit)
+    public function __construct(private readonly AuditLogger $audit, private readonly LinkedContentReview $review)
     {
     }
 
@@ -96,11 +93,7 @@ class SourceFetcher
 
     private function sendLinkedContentToReview(SourceDocument $document): int
     {
-        $n = MedicalGuideline::where('source_document_id', $document->id)->where('review_status', 'approved')->update(['review_status' => 'in_review']);
-        $n += Disease::where('source_document_id', $document->id)->where('review_status', 'approved')->update(['review_status' => 'in_review']);
-        $n += OrientationRule::where('source_document_id', $document->id)->where('validation_status', 'approved')->update(['validation_status' => 'in_review']);
-
-        return $n;
+        return $this->review->sendBack([$document->id]);
     }
 
     private function markUnavailable(SourceDocument $document): array

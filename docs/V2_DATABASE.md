@@ -90,6 +90,11 @@ Migrations live in `BACK/sahtek/database/migrations/2025_*` and are grouped by d
 | `source_documents` | knowledge_source_id, url (unique per source), title, language, published_at, retrieved_at, last_checked_at, content_hash (SHA-256), raw_content (normalised text, hidden), status (`pending/active/changed/unavailable`) |
 | `assessment_outcomes` | assessment_id (unique), consulted, consulted_specialty_id, diagnosis_disease_id, diagnosis_icd11, went_to_emergency, helpfulness (1–5), source (`patient_reported/doctor_confirmed`), collected_at, reminder_sent_at |
 
+Knowledge pipeline (phase 1 of the data pipeline, migration `2025_03_01_000001`):
+- `knowledge_sources`: `code` (unique, e.g. `icd11`), `license_status` (`unverified/confirmed/unclear`, set by a human; `knowledge:fetch` requires `confirmed`), `license_checked_at`, `attribution`.
+- `source_documents`: **one row per fingerprint**. Identity = (`knowledge_source_id`, `url`, `language`), `unique(url, language, content_hash)`. New: `previous_document_id`, `raw_path` (`raw/{source}/{sha256}.{ext}` on the raw disk; raw bytes untouched), `raw_format`, `raw_bytes`, `http_status`, `metadata` (json: release, code, URI…), status `superseded` for older versions. Mapping with the requested fields: `source_name`/`licence` → `knowledge_sources.name`/`license`, `fetched_at` → `retrieved_at`, `content_sha256` → `content_hash`.
+- For API documents (`raw_path` set) `content_hash` is the SHA-256 of the raw bytes; for pages of the page monitor it is the SHA-256 of the normalised text kept in `raw_content`.
+
 New columns: `source_document_id` on `medical_guidelines`, `orientation_rules`, `diseases`; `summary_template`\* on `symptom_questions`; `questionnaire_version`, `ruleset_version` on `symptom_assessments`.
 
 ## Deferred tables

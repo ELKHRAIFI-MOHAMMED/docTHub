@@ -8,7 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(ReferenceDataSeeder::class);
+        $this->call([ReferenceDataSeeder::class, KnowledgeSourceSeeder::class]);
 
         if (app()->environment('production')) {
             $this->command?->warn('Production: only reference data seeded. Sample medical content and demo accounts are skipped.');
