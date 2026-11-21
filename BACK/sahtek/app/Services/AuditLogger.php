@@ -11,6 +11,9 @@ class AuditLogger
     /** Attributes never written to the audit log. */
     private const REDACTED = ['password', 'remember_token', 'date_of_birth'];
 
+    /** Set while an artisan command runs (AppServiceProvider): the command name is the actor of CLI changes. */
+    public static ?string $console = null;
+
     public function log(string $action, ?Model $subject = null, ?array $old = null, ?array $new = null): void
     {
         AuditLog::create([
@@ -20,8 +23,8 @@ class AuditLogger
             'auditable_id' => $subject?->getKey(),
             'old_values' => $old !== null ? $this->clean($old) : null,
             'new_values' => $new !== null ? $this->clean($new) : null,
-            'ip_address' => Request::ip(),
-            'user_agent' => substr((string) Request::userAgent(), 0, 255),
+            'ip_address' => self::$console ? null : Request::ip(),
+            'user_agent' => substr(self::$console ? 'artisan '.self::$console : (string) Request::userAgent(), 0, 255),
             'created_at' => now(),
         ]);
     }

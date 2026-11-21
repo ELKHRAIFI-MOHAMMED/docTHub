@@ -52,6 +52,15 @@ class QuestionController extends AdminCrudController
         ];
     }
 
+    protected function auditSnapshot(Model $model): array
+    {
+        /** @var SymptomQuestion $model */
+        return parent::auditSnapshot($model) + [
+            'options' => $model->options()->orderBy('code')->get()->map(fn ($o) => ['code' => $o->code, 'label' => $o->label, 'score' => $o->score, 'symptom_id' => $o->symptom_id, 'translations' => $o->translationsByLocale()])->all(),
+            'conditions' => $model->conditions()->orderBy('id')->get()->map(fn ($c) => ['depends_on_question_id' => $c->depends_on_question_id, 'operator' => $c->operator, 'value' => $c->value])->all(),
+        ];
+    }
+
     protected function afterSave(Model $model, array $data, Request $request): void
     {
         /** @var SymptomQuestion $model */

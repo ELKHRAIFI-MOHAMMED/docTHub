@@ -42,6 +42,7 @@ return [
     */
     'knowledge' => [
         'raw_disk' => env('DOCTHUB_KNOWLEDGE_RAW_DISK', 'local'), // local = storage/app
+        'exports_disk' => env('DOCTHUB_KNOWLEDGE_EXPORTS_DISK', 'local'), // exports/knowledge_vX.Y.json
 
         'fetchers' => [
             'icd11' => App\Services\Knowledge\Fetchers\IcdFetcher::class,

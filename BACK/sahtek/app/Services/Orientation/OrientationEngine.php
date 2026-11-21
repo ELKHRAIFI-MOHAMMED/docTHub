@@ -10,6 +10,7 @@ use App\Models\OrientationRule;
 use App\Models\Specialty;
 use App\Models\SymptomAssessment;
 use App\Models\SystemSetting;
+use App\Services\Knowledge\Release\KnowledgeVersion;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -216,6 +217,8 @@ class OrientationEngine
                 'engine_version' => config('docthub.engine_version'),
                 'questionnaire_version' => $this->versions->questionnaire(),
                 'ruleset_version' => $this->versions->ruleset(),
+                // Results depend on the content at evaluation time: the knowledge version is refreshed here.
+                'knowledge_version' => app(KnowledgeVersion::class)->current(),
                 'uses_unreviewed_content' => $usesUnreviewed,
             ])->save();
         });

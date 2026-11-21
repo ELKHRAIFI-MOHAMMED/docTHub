@@ -43,6 +43,15 @@ class DiseaseController extends AdminCrudController
         ];
     }
 
+    protected function auditSnapshot(Model $model): array
+    {
+        /** @var Disease $model */
+        return parent::auditSnapshot($model) + [
+            'symptoms' => $model->symptoms()->orderBy('code')->get()->mapWithKeys(fn ($s) => [$s->code => (int) $s->pivot->weight])->all(),
+            'body_parts' => $model->bodyParts()->orderBy('code')->get()->mapWithKeys(fn ($b) => [$b->code => (int) $b->pivot->weight])->all(),
+        ];
+    }
+
     protected function afterSave(Model $model, array $data, Request $request): void
     {
         /** @var Disease $model */

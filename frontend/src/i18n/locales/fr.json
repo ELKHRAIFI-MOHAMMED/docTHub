@@ -29,7 +29,8 @@
     "no": "Non",
     "pagination": "Pagination",
     "pageOf": "Page {{page}} sur {{total}}",
-    "skipToContent": "Aller au contenu"
+    "skipToContent": "Aller au contenu",
+    "retry": "Réessayer"
   },
   "location": {
     "country": "Pays",
@@ -364,5 +365,19 @@
     "versions": "Évaluations par version des règles",
     "versionsHint": "Ne comparer les indicateurs qu'entre évaluations faites avec les mêmes règles.",
     "privacy": "Les indicateurs sont des agrégats. L'export ne contient ni nom, ni e-mail, ni téléphone, ni date de naissance, ni identifiant interne, et seulement les patients dont le consentement « données de santé » est actif."
+  },
+  "audit": {
+    "title": "Journal d’audit",
+    "subtitle": "Qui a changé quoi, quand, avec l’ancienne et la nouvelle valeur (admin et ligne de commande).",
+    "action": "Action",
+    "itemType": "Type d’élément",
+    "all": "Toutes",
+    "system": "Système",
+    "field": "Champ",
+    "old": "Ancienne valeur",
+    "new": "Nouvelle valeur",
+    "changes_one": "{{count}} modification",
+    "changes_many": "{{count}} modifications",
+    "changes_other": "{{count}} modifications"
   }
 }

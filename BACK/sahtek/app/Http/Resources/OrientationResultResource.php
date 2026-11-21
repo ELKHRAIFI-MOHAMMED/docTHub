@@ -63,6 +63,7 @@ class OrientationResultResource extends JsonResource
             'status' => $this->status,
             'evaluated_at' => $this->evaluated_at?->toIso8601String(),
             'engine_version' => $this->engine_version,
+            'knowledge_version' => $this->knowledge_version,
             'body_parts' => BodyPartResource::collection(
                 BodyPart::withTrashed()->withLocaleTranslations()->whereIn('id', $this->body_part_ids ?? [])->get()
             ),

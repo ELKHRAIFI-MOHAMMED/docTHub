@@ -11,7 +11,7 @@ class SymptomAssessment extends Model
 {
     protected $fillable = [
         'uuid', 'patient_id', 'country_id', 'city_id', 'locale', 'sex', 'age_years', 'body_part_ids', 'status',
-        'engine_version', 'questionnaire_version', 'ruleset_version', 'uses_unreviewed_content', 'evaluated_at',
+        'engine_version', 'questionnaire_version', 'ruleset_version', 'knowledge_version', 'uses_unreviewed_content', 'evaluated_at',
     ];
 
     protected $casts = [

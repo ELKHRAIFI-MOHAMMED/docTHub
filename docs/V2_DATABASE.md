@@ -99,6 +99,8 @@ Knowledge import (migration `2025_03_02_000001`):
 - `symptoms` and `diseases`: `external_system` (`icd11`, `medlineplus`), `external_code`, `external_uri` — unique(external_system, external_code); `needs_translation` (json list of locales with no text); `version`; `symptoms.source_document_id`.
 - `diseases.severity` is now **nullable, no default** (imported conditions get no severity).
 - `diseases` and `orientation_rules`: `reviewed_by_name`, `reviewed_at` (migration `2025_03_03_000001`; `reviewed_at` stamped when an approved item gets a reviewer). Rule `priority` limited to 0..100 in the admin.
+- `knowledge_releases` (migration `2025_03_04_000001`): version (`X.Y`, unique), major, minor, content_hash (SHA-256 of the canonical approved content), questionnaire_version, ruleset_version, counts, file_path (`exports/knowledge_vX.Y.json`), file_sha256, created_by, created_via, notes, created_at. Immutable.
+- `symptom_assessments.knowledge_version`: release in force at creation, refreshed at evaluation (`X.Y`, `unreleased` = approved content changed since the last export, `unreviewed` = unreviewed content allowed).
 - `knowledge_aliases`: aliasable_type, aliasable_id, locale, alias, normalized — unique(aliasable_type, locale, normalized); source_document_id.
 
 New columns: `source_document_id` on `medical_guidelines`, `orientation_rules`, `diseases`; `summary_template`\* on `symptom_questions`; `questionnaire_version`, `ruleset_version` on `symptom_assessments`.

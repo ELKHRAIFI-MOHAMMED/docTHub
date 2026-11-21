@@ -10,6 +10,7 @@ use App\Http\Resources\QuestionResource;
 use App\Models\AssessmentAnswer;
 use App\Models\SymptomAssessment;
 use App\Models\SymptomQuestion;
+use App\Services\Knowledge\Release\KnowledgeVersion;
 use App\Services\Orientation\ContentVersion;
 use App\Services\Orientation\OrientationEngine;
 use App\Services\Orientation\QuestionFlow;
@@ -41,6 +42,7 @@ class AssessmentController extends ApiController
             'body_part_ids' => array_values(array_unique(array_map('intval', $data['body_part_ids']))),
             'status' => 'in_progress',
             'questionnaire_version' => app(ContentVersion::class)->questionnaire(),
+            'knowledge_version' => app(KnowledgeVersion::class)->current(),
         ]);
 
         return (new AssessmentResource($assessment))->response()->setStatusCode(201);

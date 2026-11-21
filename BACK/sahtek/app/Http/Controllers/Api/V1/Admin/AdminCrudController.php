@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Api\V1\ApiController;
 use App\Http\Resources\AdminRecordResource;
 use App\Services\AuditLogger;
+use App\Services\Knowledge\Release\KnowledgeSnapshot;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -103,7 +104,8 @@ abstract class AdminCrudController extends ApiController
             return $model;
         });
 
-        $this->audit->log('admin.created', $model, null, $model->attributesToArray());
+        $this->audit->log('admin.created', $model, null, $model->attributesToArray() + $this->auditSnapshot($model->fresh()));
+        KnowledgeSnapshot::forgetHash();
 
         return (new AdminRecordResource($model->fresh($this->with)))->response()->setStatusCode(201);
     }
@@ -113,14 +115,32 @@ abstract class AdminCrudController extends ApiController
         $model = $this->query()->findOrFail($id);
         $data = $this->validated($request, $model);
         $old = $model->attributesToArray();
+        $oldExtra = $this->auditSnapshot($model);
 
-        DB::transaction(function () use ($model, $data, $request) {
+        // Changes of every save in the request (afterSave may save again, e.g. a rule version bump).
+        $changes = DB::transaction(function () use ($model, $data, $request) {
             $model->fill($data)->save();
+            $changes = $model->getChanges();
             $this->saveTranslations($model, $data);
             $this->afterSave($model, $data, $request);
-        });
 
-        $this->audit->log('admin.updated', $model, array_intersect_key($old, $model->getChanges()), $model->getChanges());
+            return array_merge($changes, $model->getChanges());
+        });
+        unset($changes['updated_at']);
+
+        $newExtra = $this->auditSnapshot($model->fresh());
+        $oldValues = array_intersect_key($old, $changes);
+        $newValues = $changes;
+        foreach ($newExtra as $key => $value) {
+            if (($oldExtra[$key] ?? null) != $value) {
+                $oldValues[$key] = $oldExtra[$key] ?? null;
+                $newValues[$key] = $value;
+            }
+        }
+        if ($newValues) { // nothing changed: nothing to journal
+            $this->audit->log('admin.updated', $model, $oldValues, $newValues);
+            KnowledgeSnapshot::forgetHash();
+        }
 
         return new AdminRecordResource($model->fresh($this->with));
     }
@@ -136,6 +156,7 @@ abstract class AdminCrudController extends ApiController
         $model->forceFill([$this->statusColumn => $data['status']])->save();
 
         $this->audit->log('admin.status_changed', $model, [$this->statusColumn => $old], [$this->statusColumn => $data['status']]);
+        KnowledgeSnapshot::forgetHash();
 
         return new AdminRecordResource($model->fresh($this->with));
     }
@@ -143,6 +164,7 @@ abstract class AdminCrudController extends ApiController
     public function destroy(int $id): JsonResponse
     {
         $model = $this->query()->findOrFail($id);
+        $old = $model->attributesToArray() + $this->auditSnapshot($model);
 
         try {
             $model->delete();
@@ -151,9 +173,19 @@ abstract class AdminCrudController extends ApiController
             return response()->json(['message' => 'This record is still in use and cannot be deleted. Archive or deactivate it instead.'], 409);
         }
 
-        $this->audit->log('admin.deleted', $model, $model->attributesToArray(), null);
+        $this->audit->log('admin.deleted', $model, $old, null);
+        KnowledgeSnapshot::forgetHash();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Related data journaled with old / new values on top of the columns (translations by default;
+     * controllers add links such as a condition's symptoms or a question's options).
+     */
+    protected function auditSnapshot(Model $model): array
+    {
+        return method_exists($model, 'translationsByLocale') ? ['translations' => $model->translationsByLocale()] : [];
     }
 
     protected function query(): Builder

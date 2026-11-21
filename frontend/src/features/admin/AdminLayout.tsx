@@ -17,6 +17,7 @@ export default function AdminLayout() {
             <NavLink to="/admin/doctors" className={link}>{t('admin.res.doctors')}</NavLink>
             <NavLink to="/admin/patients" className={link}>{t('admin.res.patients')}</NavLink>
             <NavLink to="/admin/analytics" className={link}>{t('analytics.title')}</NavLink>
+            <NavLink to="/admin/audit" className={link}>{t('audit.title')}</NavLink>
           </div>
           <div>
             <p className="px-3 pb-1 text-xs font-semibold uppercase text-slate-400">{t('admin.catalog')}</p>

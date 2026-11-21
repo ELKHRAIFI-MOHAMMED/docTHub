@@ -95,6 +95,16 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 - ⬜ The workflow has not run yet on GitHub (no push done)
 - ⬜ Approving through the admin does not yet *refuse* a missing reviewer (the validator reports it); enforcing it changes an existing admin test
 
+### Data pipeline V2 — phase 4: versioned exports and audit trail
+- ✅ `knowledge:export [--major] [--notes]`: deterministic snapshot of approved conditions / guidelines / rules + the reference items they use → `storage/app/exports/knowledge_vX.Y.json` + immutable `knowledge_releases` row; refused while `knowledge:validate` fails or nothing is approved; no new version when content is unchanged
+- ✅ `symptom_assessments.knowledge_version` stamped at creation and refreshed at evaluation (`X.Y` / `unreleased` / `unreviewed`), exposed in results, analytics (`knowledge_versions`) and the pseudonymised export
+- ✅ Content hash cached and invalidated on every admin write, import and review reset
+- ✅ Audit trail: admin updates journal columns + translations + links (condition symptoms / body parts, question options / conditions) with old and new values; changes of every save are kept (rule version bump); no-op saves not journaled; command-line actor = `artisan <command>`; importer records old values
+- ✅ `knowledge:history type:code`, audit API filters (item, period), Admin → Audit trail page (EN/FR/AR)
+- ✅ Tests: +11 backend (108), +2 frontend (28)
+- ⬜ Export of the current sample catalog is refused (13 validation errors) — expected until content is reviewed
+- ⬜ Changes made outside the app (SQL, tinker) bypass the audit trail and the hash cache
+
 ### Phase 6 — Quality & deployment
 - ✅ Backend: 50 tests / 276 assertions (feature + unit) — auth, authorisation, validation, rules, emergency rules, discovery, admin, privacy
 - ✅ Frontend: 23 tests (components, forms, API integration with mocked fetch, RTL, i18n key parity, auth guards)
@@ -131,6 +141,8 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 | 20 | MedlinePlus French/Arabic are "skipped", never translated; ICD-11 only uses WHO's own languages | ICD-11 terms exclude translations without WHO agreement; no silent machine translation | FR/AR coverage depends on publishers |
 | 21 | The operator chooses the target type (`--as`), the importer never infers it | Neither source gives a verified symptom/condition flag | One command per type |
 | 22 | Imports never overwrite non-draft items and never merge sources | Review must stay meaningful; merging ICD-11 with another source is a mapping | Reviewers resolve `conflict` and duplicate notes by hand |
+| 23 | Releases are snapshots of approved content; assessments record the release whose content hash matches the live approved content | Analyses compare like with like; no false claim that an assessment used a release when content changed since | `unreleased` until someone exports |
+| 24 | Journal at the controller level (old/new values, translations, links) rather than model observers | Links and translations are saved outside the model events; one entry per admin action | Writes outside the controllers / commands are not journaled |
 | 14 | Pinned latest *known* majors (Vite 7, TS 5.9, Vitest 3, i18next 25) instead of the newest (Vite 8, TS 7, Vitest 5) | Avoid unverified breaking changes during the build | Upgrade later in a dedicated step |
 
 ---
@@ -166,6 +178,8 @@ Legend: ✅ done (UI + API + DB + validation + permissions + tests) · 🟡 part
 10. **E2E waits**: waiting a fixed 500 ms after "Next" raced the API; wait for the heading to change instead.
 14. **MariaDB refuses to drop a unique index used by a foreign key** (`source_documents_source_url_unique` backed `knowledge_source_id`). Create the replacement index first, then drop.
 15. **`php artisan migrate --env=testing` without a `.env.testing` runs against `.env`** (the dev database). Tests get their database from `phpunit.xml`; never pass `--env=testing` by hand.
+17. **Console events in tests**: Laravel only reroutes Symfony console events (`CommandStarting`) outside unit tests; tests that check the CLI actor need the `WithConsoleEvents` trait.
+18. **Dots in JSON keys**: `assertJsonPath('data.knowledge_versions.1.0')` reads `1` then `0`. Compare the whole map instead.
 16. **PHP arrow functions capture by value**: `fn () => array_shift($queue)` always shifts a fresh copy. Use `function () use (&$queue)` for sequences in fakes.
 
 ---

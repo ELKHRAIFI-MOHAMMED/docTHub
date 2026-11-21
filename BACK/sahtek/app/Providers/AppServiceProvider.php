@@ -5,8 +5,12 @@ namespace App\Providers;
 use App\Models;
 use App\Services\Ai\MedicalAssistant;
 use App\Services\Ai\NullMedicalAssistant;
+use App\Services\AuditLogger;
 use App\Services\Orientation\ContentGate;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Actor of changes made from the command line (audit_logs.user_agent = "artisan <command>"). Only the command
+        // name is kept: options could carry secrets.
+        Event::listen(CommandStarting::class, fn (CommandStarting $e) => AuditLogger::$console = $e->command);
+        Event::listen(CommandFinished::class, fn () => AuditLogger::$console = null);
+
         // Stable short names in polymorphic columns (translations, audit_logs, tokens) instead of PHP class names.
         Relation::morphMap([
             'user' => Models\User::class,
@@ -39,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
             'patient' => Models\Patient::class,
             'knowledge_source' => Models\KnowledgeSource::class,
             'source_document' => Models\SourceDocument::class,
+            'knowledge_release' => Models\KnowledgeRelease::class,
         ]);
     }
 }

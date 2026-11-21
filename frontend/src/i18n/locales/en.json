@@ -29,7 +29,8 @@
     "no": "No",
     "pagination": "Pagination",
     "pageOf": "Page {{page}} of {{total}}",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "retry": "Retry"
   },
   "location": {
     "country": "Country",
@@ -364,5 +365,18 @@
     "versions": "Assessments by rule-set version",
     "versionsHint": "Only compare indicators between assessments made with the same rules.",
     "privacy": "Indicators are aggregates. The export contains no name, e-mail, phone, date of birth or internal identifier, and only patients whose health-data consent is active."
+  },
+  "audit": {
+    "title": "Audit trail",
+    "subtitle": "Who changed what, when, with the old and the new value (admin and command line).",
+    "action": "Action",
+    "itemType": "Item type",
+    "all": "All",
+    "system": "System",
+    "field": "Field",
+    "old": "Old value",
+    "new": "New value",
+    "changes_one": "{{count}} change",
+    "changes_other": "{{count}} changes"
   }
 }

@@ -85,6 +85,9 @@ class OutcomeAnalytics
             'content' => $this->contentCoverage(),
             'versions' => (clone $assessments)->where('status', 'completed')
                 ->selectRaw('ruleset_version, COUNT(*) as total')->groupBy('ruleset_version')->pluck('total', 'ruleset_version'),
+            // Completed assessments per knowledge release (X.Y, "unreleased", "unreviewed"; null = before releases existed).
+            'knowledge_versions' => (clone $assessments)->where('status', 'completed')
+                ->selectRaw("COALESCE(knowledge_version, 'none') AS kv, COUNT(*) as total")->groupBy('kv')->pluck('total', 'kv'),
         ];
     }
 
@@ -152,6 +155,7 @@ class OutcomeAnalytics
                 ] : null,
                 'questionnaire_version' => $a->questionnaire_version,
                 'ruleset_version' => $a->ruleset_version,
+                'knowledge_version' => $a->knowledge_version,
                 'engine_version' => $a->engine_version,
             ];
         }

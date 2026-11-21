@@ -76,9 +76,12 @@ class KnowledgeImporter
                     $content += ['review_status' => 'draft', 'is_sample' => false, 'severity' => null];
                 }
             }
+            $before = $isNew ? null : $model->only(array_keys($content));
             $model->fill($content);
             $changed = $model->isDirty();
             $model->save();
+            $dirty = $model->getChanges();
+            unset($dirty['updated_at'], $dirty['created_at']);
 
             $changed = $this->syncTranslations($model, $record) || $changed;
             $missing = $this->missingLocales($model, $record);
@@ -92,8 +95,8 @@ class KnowledgeImporter
 
             $action = $isNew ? 'created' : ($changed ? 'updated' : 'unchanged');
             if ($action !== 'unchanged') {
-                $this->audit->log("knowledge.import.$action", $model, null, [
-                    'code' => $model->code, 'external' => "{$record->system}:{$record->externalCode}", 'source_document_id' => $record->sourceDocumentId,
+                $this->audit->log("knowledge.import.$action", $model, $before !== null ? array_intersect_key($before, $dirty) : null, $dirty + [
+                    'external' => "{$record->system}:{$record->externalCode}", 'source_document_id' => $record->sourceDocumentId,
                 ]);
             }
 

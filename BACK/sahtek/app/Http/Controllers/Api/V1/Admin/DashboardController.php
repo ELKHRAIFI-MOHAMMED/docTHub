@@ -14,6 +14,7 @@ use App\Models\Patient;
 use App\Models\Specialty;
 use App\Models\SymptomAssessment;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends ApiController
@@ -48,12 +49,26 @@ class DashboardController extends ApiController
 
     public function auditLogs(Request $request): JsonResponse
     {
+        $request->validate(['from' => ['nullable', 'date'], 'to' => ['nullable', 'date'], 'auditable_id' => ['nullable', 'integer']]);
         $query = AuditLog::with('user:id,name,email')->orderByDesc('id');
         if ($request->filled('action')) {
             $query->where('action', 'like', addcslashes((string) $request->query('action'), '%_\\').'%');
         }
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->integer('user_id'));
+        }
+        // History of one item (e.g. auditable_type=disease&auditable_id=12) and period filters.
+        if ($request->filled('auditable_type')) {
+            $query->where('auditable_type', (string) $request->query('auditable_type'));
+        }
+        if ($request->filled('auditable_id')) {
+            $query->where('auditable_id', $request->integer('auditable_id'));
+        }
+        if ($request->filled('from')) {
+            $query->where('created_at', '>=', Carbon::parse((string) $request->query('from'))->startOfDay());
+        }
+        if ($request->filled('to')) {
+            $query->where('created_at', '<=', Carbon::parse((string) $request->query('to'))->endOfDay());
         }
 
         return response()->json($query->paginate(min((int) $request->query('per_page', 50), 100)));

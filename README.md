@@ -56,4 +56,12 @@ php artisan knowledge:import icd11 --as=disease --dry-run
 php artisan knowledge:import medlineplus                    # lists topics; then --only=<id> --as=symptom|disease
 ```
 
+Check, release and trace:
+
+```bash
+php artisan knowledge:validate                         # quality gate (exit 1 on errors)
+php artisan knowledge:export --notes="…"                # storage/app/exports/knowledge_vX.Y.json, approved content only
+php artisan knowledge:history disease:<code>           # who changed what, when, old → new
+```
+
 Raw files: `storage/app/raw/{source}/{sha256}.{json|xml}`. Imported content is never published or approved automatically.

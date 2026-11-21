@@ -6,6 +6,7 @@ use App\Models\KnowledgeSource;
 use App\Services\Knowledge\Import\IcdReader;
 use App\Services\Knowledge\Import\KnowledgeImporter;
 use App\Services\Knowledge\Import\MedlinePlusReader;
+use App\Services\Knowledge\Release\KnowledgeSnapshot;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -73,6 +74,7 @@ class KnowledgeImport extends Command
                 $rows[] = [$record->code, "{$record->system}:{$record->externalCode}", $result['action'], $missing ? implode(', ', $missing) : '-', implode('; ', $result['notes'])];
             }
             $dryRun ? DB::rollBack() : DB::commit();
+            KnowledgeSnapshot::forgetHash();
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;

@@ -71,7 +71,7 @@ When `emergency` is not null, `conditions`, `specialties` and `guidelines` are i
 | GET | `/assessments/{uuid}/outcome` | Current outcome (`collected: false` if none) |
 | PUT | `/assessments/{uuid}/outcome` | `consulted (bool, required), consulted_specialty_id?, diagnosis_disease_id?, diagnosis_icd11? (e.g. BA40.Z), went_to_emergency?, helpfulness? (1–5)`. 409 if not evaluated. `consulted=false` clears the clinical fields. |
 
-The result payload also contains `case_summary: {paragraphs[], text, generated_by: "templates"}` and `follow_up: {collected, available}`.
+The result payload also contains `knowledge_version` (see `knowledge_releases`), `case_summary: {paragraphs[], text, generated_by: "templates"}` and `follow_up: {collected, available}`.
 
 ## Doctor discovery (public; `is_favorite` filled when the caller is a patient)
 
@@ -119,7 +119,7 @@ Analytics:
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/admin/analytics?days=90` | Concordance, diagnosis among shown possibilities, emergency rate and by rule, response rate, usefulness, content coverage, versions |
+| GET | `/admin/analytics?days=90` | Concordance, diagnosis among shown possibilities, emergency rate and by rule, response rate, usefulness, content coverage, versions, `knowledge_versions` (completed assessments per knowledge release) |
 | GET | `/admin/analytics/export?days=365` | Pseudonymised JSON Lines, consented patients only, audit-logged |
 
 Doctor verification and files:
@@ -140,7 +140,7 @@ Patients, dashboard, audit:
 | GET | `/admin/patients/{id}` | Audit-logged view |
 | PATCH | `/admin/patients/{id}/active` | `{is_active}`; deactivation revokes tokens |
 | GET | `/admin/dashboard` | Counts, assessments per day (30 d), top specialties, emergency alerts |
-| GET | `/admin/audit-logs?action=&user_id=` | Audit trail |
+| GET | `/admin/audit-logs?action=&user_id=&auditable_type=&auditable_id=&from=&to=` | Audit trail: who (user, or `artisan <command>` in `user_agent` for the command line), when, `old_values` / `new_values` including translations and links (condition symptoms / body parts, question options / conditions) |
 
 ## Legacy V1 (unchanged)
 `GET /api/afficher-partie_corp`, `/api/afficher-malade/{idp}/{idg}`, `/api/afficher-consigne/{idm}`, `/api/afficher-symptome/{idm}`, `/api/afficher-medcin/{ids}`.

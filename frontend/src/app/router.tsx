@@ -23,6 +23,7 @@ const ResourcePage = lazy(() => import('../features/admin/ResourcePage'));
 const DoctorsAdminPage = lazy(() => import('../features/admin/DoctorsAdminPage'));
 const PatientsAdminPage = lazy(() => import('../features/admin/PatientsAdminPage'));
 const AnalyticsPage = lazy(() => import('../features/admin/AnalyticsPage'));
+const AuditPage = lazy(() => import('../features/admin/AuditPage'));
 
 const s = (el: ReactNode) => <Suspense fallback={<PageLoader />}>{el}</Suspense>;
 
@@ -54,6 +55,7 @@ export const routes = [
           { path: 'doctors', element: s(<DoctorsAdminPage />) },
           { path: 'patients', element: s(<PatientsAdminPage />) },
           { path: 'analytics', element: s(<AnalyticsPage />) },
+          { path: 'audit', element: s(<AuditPage />) },
           { path: 'r/:resource', element: s(<ResourcePage />) },
         ],
       },
